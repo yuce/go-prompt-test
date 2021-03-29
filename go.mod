@@ -7,6 +7,7 @@ require (
 	github.com/candid82/liner v1.4.0 // indirect
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e // indirect
 	github.com/hazelcast/hazelcast-go-client/v4 v4.0.0
+	github.com/rivo/tview v0.0.0-20210312174852-ae9464cc3598 // indirect
 )
 
 replace github.com/hazelcast/hazelcast-go-client/v4 v4.0.0 => github.com/yuce/hazelcast-go-client/v4 v4.0.0-temp.2

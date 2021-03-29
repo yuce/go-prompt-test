@@ -1,74 +1,27 @@
 package main
 
 import (
-	"fmt"
-	"github.com/c-bata/go-prompt"
-	hz "github.com/hazelcast/hazelcast-go-client/v4/hazelcast"
-	"log"
-	"os"
-	"strings"
+	"github.com/rivo/tview"
 )
 
-type sqlCl struct {
-	client *hz.Client
-}
-
-func NewSqlCl(addr string) (*sqlCl, error) {
-	cb := hz.NewClientConfigBuilder()
-	cb.Network().SetAddrs(addr)
-	if config, err := cb.Config(); err != nil {
-		return nil, err
-	} else if client, err := hz.StartNewClientWithConfig(config); err != nil {
-		return nil, err
-	} else {
-		return &sqlCl{client}, nil
-	}
-}
-
-func (cl *sqlCl) completer(d prompt.Document) []prompt.Suggest {
-	if d.TextBeforeCursor() == "" {
-		return []prompt.Suggest{}
-	}
-	if strings.Index(d.Text, "select") >= 0 {
-		return []prompt.Suggest{
-			{Text: "*"},
-			{Text: "from...", Description: "Choose the map to query"},
-		}
-	}
-	s := []prompt.Suggest{
-		{Text: "select"},
-	}
-	return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
-}
-
-func (cl *sqlCl) executor(s string) {
-	s = strings.TrimSpace(s)
-	if s == "" {
-		return
-	} else if s == "quit" || s == "exit" {
-		fmt.Println("Bye!")
-		os.Exit(0)
-		return
-	}
-	if result, err := cl.client.ExecuteSQL(s); err != nil {
-		log.Println(err.Error())
-	} else {
-		fmt.Println("Result:", result)
-	}
-}
-
 func main() {
-	cl, err := NewSqlCl("localhost:5701")
-	if err != nil {
-		log.Fatal(err)
+	app := tview.NewApplication()
+	form := tview.NewForm().
+		AddInputField("Name", "", 20, nil, nil).
+		AddInputField("Field 1 Name", "", 20, nil, nil).
+		AddDropDown("Field 1 Type", []string{"String", "Int", "Float", "Boolean"}, 0, nil).
+		//AddCheckbox("Age 18+", false, nil).
+		//AddPasswordField("Password", "", 10, '*', nil).
+		AddInputField("Option Key 1", "", 20, nil, nil).
+		AddInputField("Option Value 1", "", 20, nil, nil).
+		AddButton("Add Field", nil).
+		AddButton("Add Option", nil).
+		AddButton("Save", nil).
+		AddButton("Cancel", func() {
+			app.Stop()
+		})
+	form.SetBorder(true).SetTitle(" Create Mapping ").SetTitleAlign(tview.AlignCenter)
+	if err := app.SetRoot(form, true).SetFocus(form).Run(); err != nil {
+		panic(err)
 	}
-	p := prompt.New(
-		cl.executor,
-		cl.completer,
-		prompt.OptionTitle("HzSQLCl: Interactive Hazelcast SQL client"),
-		prompt.OptionPrefix("SQL> "),
-		//prompt.OptionInputTextColor(prompt.Yellow),
-		//prompt.OptionCompletionWordSeparator(completer.FilePathCompletionSeparator),
-	)
-	p.Run()
 }
