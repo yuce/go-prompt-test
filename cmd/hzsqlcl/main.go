@@ -13,6 +13,7 @@ import (
 	"github.com/gcla/gowid/widgets/vpadding"
 	"github.com/gdamore/tcell"
 	hz "github.com/hazelcast/hazelcast-go-client/v4/hazelcast"
+	"github.com/hazelcast/hazelcast-go-client/v4/hazelcast/property"
 	"github.com/hazelcast/hazelcast-go-client/v4/hazelcast/sql"
 	"log"
 	"time"
@@ -147,6 +148,8 @@ func main() {
 	// connect the client
 	cb := hz.NewClientConfigBuilder()
 	cb.Cluster().SetName("jet")
+	cb.SetProperty(property.LoggingLevel, "error")
+
 	config, err := cb.Config()
 	if err != nil {
 		log.Fatal(err)
