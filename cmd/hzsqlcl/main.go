@@ -80,11 +80,10 @@ func handleSqlResult(result sql.Result) string {
 		}
 		counter++
 		for i := 0; i < columnCount; i++ {
-			res += "Value: "
 			// column := rowMetadata.Column(i)
 			// column.Type()
-			res += fmt.Sprint(row.ValueAtIndex(i))
-			res += " "
+			res += fmt.Sprintf("   %v",row.ValueAtIndex(i))
+			res += "   "
 
 		}
 		res += "\n"
@@ -101,7 +100,7 @@ func (w *EditBox) UserInput(ev interface{}, size gowid.IRenderSize, focus gowid.
 			result, err := client.ExecuteSQL(t)
 			var responseMessage string
 			if err != nil {
-				responseMessage = fmt.Sprintf("could not execute sql %s", err)
+				responseMessage = fmt.Sprintf("%s", err)
 				w.resultWidget.SetContent(app, createErrorMessage(responseMessage))
 			} else {
 				responseMessage = handleSqlResult(result)
