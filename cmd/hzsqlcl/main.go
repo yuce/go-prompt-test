@@ -2,15 +2,16 @@ package main
 
 import (
 	"fmt"
-	ui "github.com/VladimirMarkelov/clui"
 	"github.com/gcla/gowid"
-	"github.com/gcla/gowid/widgets/divider"
+	"github.com/gcla/gowid/widgets/edit"
+	"github.com/gcla/gowid/widgets/fill"
+	"github.com/gcla/gowid/widgets/framed"
+	"github.com/gcla/gowid/widgets/holder"
 	"github.com/gcla/gowid/widgets/pile"
 	"github.com/gcla/gowid/widgets/styled"
 	"github.com/gcla/gowid/widgets/text"
 	"github.com/gcla/gowid/widgets/vpadding"
 	"github.com/gdamore/tcell"
-	"log"
 	"time"
 )
 
@@ -43,24 +44,99 @@ func createErrorMessage(msg string) *text.Content {
 	return createMessage(msg, "error")
 }
 
+type EditBox struct {
+	gowid.IWidget
+	resultWidget *text.Widget
+}
+
+func NewEditBox(resultWidget *text.Widget) *EditBox {
+	editWidget := edit.New(edit.Options{Caption: "SQL> "})
+	return &EditBox{
+		IWidget:      editWidget,
+		resultWidget: resultWidget,
+	}
+}
+
+func (w *EditBox) UserInput(ev interface{}, size gowid.IRenderSize, focus gowid.Selector, app gowid.IApp) bool {
+	res := true
+	if evk, ok := ev.(*tcell.EventKey); ok {
+		switch evk.Key() {
+		case tcell.KeyEnter:
+			t := w.IWidget.(*edit.Widget).Text()
+			w.resultWidget.SetContent(app, createHintMessage(t))
+			//w.IWidget = text.New(fmt.Sprintf("Executed SQL: %s.", t))
+			w.IWidget.(*edit.Widget).SetText("", app)
+		default:
+			res = w.IWidget.UserInput(ev, size, focus, app)
+		}
+	}
+	return res
+}
+
+type ResizeablePileWidget struct {
+	*pile.Widget
+	offset int
+}
+
+func NewResizeablePile(widgets []gowid.IContainerWidget) *ResizeablePileWidget {
+	res := &ResizeablePileWidget{}
+	res.Widget = pile.New(widgets)
+	return res
+}
+
 func main() {
 	palette := gowid.Palette{
 		"banner": gowid.MakePaletteEntry(gowid.ColorBlack, gowid.NewUrwidColor("light gray")),
-		"streak": gowid.MakePaletteEntry(gowid.ColorBlack, gowid.ColorRed),
-		"bg":     gowid.MakePaletteEntry(gowid.ColorBlack, gowid.ColorDarkBlue),
 		"error":  gowid.MakePaletteEntry(gowid.ColorWhite, gowid.ColorRed),
+		"line":   gowid.MakeStyledPaletteEntry(gowid.NewUrwidColor("black"), gowid.NewUrwidColor("light gray"), gowid.StyleBold),
 	}
-	txtSegment := text.StyledContent("Hit tab to auto-complete", gowid.MakePaletteRef("banner"))
-	txt := text.NewFromContentExt(
-		text.NewContent([]text.ContentSegment{
-			txtSegment,
-		}), text.Options{
+	hline := styled.New(fill.New('~'), gowid.MakePaletteRef("line"))
+	txt := text.NewFromContentExt(createHintMessage("Hit tab to auto-complete"),
+		text.Options{
 			Align: gowid.HAlignLeft{},
 		},
 	)
-	vert := vpadding.New(txt, gowid.VAlignBottom{}, gowid.RenderFlow{})
+	resultWidget := text.NewFromContentExt(createHintMessage(""),
+		text.Options{
+			Align: gowid.HAlignLeft{},
+		},
+	)
+	editBox := NewEditBox(resultWidget)
+	flow := gowid.RenderFlow{}
+	pilew := NewResizeablePile([]gowid.IContainerWidget{
+		&gowid.ContainerWidget{IWidget: resultWidget, D: flow},
+		//&gowid.ContainerWidget{IWidget: divider.NewBlank(), D: flow},
+		&gowid.ContainerWidget{vpadding.New(
+			pile.New([]gowid.IContainerWidget{
+				&gowid.ContainerWidget{IWidget: hline, D: gowid.RenderWithUnits{U: 1}},
+				&gowid.ContainerWidget{IWidget: editBox, D: flow},
+				&gowid.ContainerWidget{IWidget: txt, D: flow},
+			}),
+			gowid.VAlignBottom{}, flow,
+		), flow},
+		//&gowid.ContainerWidget{IWidget: editBox, D: flow},
+		//&gowid.ContainerWidget{IWidget: txt, D: flow},
+	})
+	/*
+		view := vpadding.New(
+			pile.New([]gowid.IContainerWidget{
+				&gowid.ContainerWidget{IWidget: resultWidget, D: flow},
+				&gowid.ContainerWidget{IWidget: divider.NewBlank(), D: flow},
+				&gowid.ContainerWidget{IWidget: editBox, D: flow},
+				&gowid.ContainerWidget{IWidget: txt, D: flow},
+			}),
+			gowid.VAlignBottom{}, flow,
+		)
+	*/
+	tw := text.New(" localhost:5701 ")
+	//twi := styled.New(tw, gowid.MakePaletteRef("invred"))
+	twp := holder.New(tw)
+	view := framed.New(pilew, framed.Options{
+		Frame:       framed.UnicodeFrame,
+		TitleWidget: twp,
+	})
 	app, _ := gowid.NewApp(gowid.AppArgs{
-		View:    vert,
+		View:    view,
 		Palette: palette,
 	})
 
@@ -77,110 +153,3 @@ func main() {
 
 	app.SimpleMainLoop()
 }
-
-func main4() {
-	txt = text.New("hello")
-	if app, err := gowid.NewApp(gowid.AppArgs{View: txt}); err != nil {
-		log.Fatal(err)
-	} else {
-		app.MainLoop(gowid.UnhandledInputFunc(unhandled))
-	}
-}
-
-func main3() {
-	txt := text.New("hello, world!")
-	if app, err := gowid.NewApp(gowid.AppArgs{View: txt}); err != nil {
-		log.Fatal(err)
-	} else {
-		app.SimpleMainLoop()
-	}
-
-}
-
-func main2() {
-	palette := gowid.Palette{
-		"banner":  gowid.MakePaletteEntry(gowid.ColorWhite, gowid.MakeRGBColor("#60d")),
-		"streak":  gowid.MakePaletteEntry(gowid.ColorNone, gowid.MakeRGBColor("#60a")),
-		"inside":  gowid.MakePaletteEntry(gowid.ColorNone, gowid.MakeRGBColor("#808")),
-		"outside": gowid.MakePaletteEntry(gowid.ColorNone, gowid.MakeRGBColor("#a06")),
-		"bg":      gowid.MakePaletteEntry(gowid.ColorNone, gowid.MakeRGBColor("#d06")),
-	}
-
-	div := divider.NewBlank()
-	outside := styled.New(div, gowid.MakePaletteRef("outside"))
-	inside := styled.New(div, gowid.MakePaletteRef("inside"))
-
-	helloworld := styled.New(
-		text.NewFromContentExt(
-			text.NewContent([]text.ContentSegment{
-				text.StyledContent("Now, for something completely different.", gowid.MakePaletteRef("banner")),
-			}),
-			text.Options{
-				Align: gowid.HAlignMiddle{},
-			},
-		),
-		gowid.MakePaletteRef("streak"),
-	)
-
-	f := gowid.RenderFlow{}
-
-	view := styled.New(
-		vpadding.New(
-			pile.New([]gowid.IContainerWidget{
-				&gowid.ContainerWidget{IWidget: outside, D: f},
-				&gowid.ContainerWidget{IWidget: inside, D: f},
-				&gowid.ContainerWidget{IWidget: helloworld, D: f},
-				&gowid.ContainerWidget{IWidget: inside, D: f},
-				&gowid.ContainerWidget{IWidget: outside, D: f},
-			}),
-			gowid.VAlignMiddle{},
-			f),
-		gowid.MakePaletteRef("bg"),
-	)
-
-	app, _ := gowid.NewApp(gowid.AppArgs{
-		View:    view,
-		Palette: &palette,
-	})
-
-	app.SimpleMainLoop()
-}
-
-func main1() {
-	ui.InitLibrary()
-	defer ui.DeinitLibrary()
-
-	view1 := ui.AddWindow(0, 0, 10, 7, "Hello, World!")
-	btnQuit := ui.CreateButton(view1, 15, 4, "Hi", 1)
-	btnQuit.OnClick(func(event ui.Event) {
-		go ui.Stop()
-	})
-
-	ui.AddWindow(10, 5, 10, 10, "Foo")
-
-	ui.MainLoop()
-}
-
-/*
-func main() {
-	app := tview.NewApplication()
-	form := tview.NewForm().
-		AddInputField("Name", "", 20, nil, nil).
-		AddInputField("Field 1 Name", "", 20, nil, nil).
-		AddDropDown("Field 1 Type", []string{"String", "Int", "Float", "Boolean"}, 0, nil).
-		//AddCheckbox("Age 18+", false, nil).
-		//AddPasswordField("Password", "", 10, '*', nil).
-		AddInputField("Option Key 1", "", 20, nil, nil).
-		AddInputField("Option Value 1", "", 20, nil, nil).
-		AddButton("Add Field", nil).
-		AddButton("Add Option", nil).
-		AddButton("Save", nil).
-		AddButton("Cancel", func() {
-			app.Stop()
-		})
-	form.SetBorder(true).SetTitle(" Create Mapping ").SetTitleAlign(tview.AlignCenter)
-	if err := app.SetRoot(form, true).SetFocus(form).Run(); err != nil {
-		panic(err)
-	}
-}
-*/
