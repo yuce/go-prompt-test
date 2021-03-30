@@ -5,6 +5,7 @@ import (
 	"github.com/gcla/gowid/widgets/edit"
 	"github.com/gcla/gowid/widgets/text"
 	"github.com/gdamore/tcell"
+	"strings"
 )
 
 type EditBox struct {
@@ -30,10 +31,22 @@ func (w *EditBox) UserInput(ev interface{}, size gowid.IRenderSize, focus gowid.
 		switch evk.Key() {
 		case tcell.KeyEnter:
 			t := w.IWidget.(*edit.Widget).Text()
-			w.IWidget.(*edit.Widget).SetText("", app)
-			if w.handler != nil {
-				w.handler(app, w.resultWidget, t)
+
+			if strings.HasSuffix(t, ";") {
+				resultWidgetText := w.resultWidget.Content().String()
+				newText := resultWidgetText + "> " + t + "\n"
+
+				w.IWidget.(*edit.Widget).SetText("", app)
+				if w.handler != nil {
+					w.handler(app, w.resultWidget, newText)
+				}
+			} else {
+				inputWidget := w.IWidget.(*edit.Widget)
+				inputWidget.SetText(t + "\n", app)
+				inputWidget.SetCursorPos(inputWidget.CursorPos() + 1, app)
 			}
+
+
 			//w.resultWidget.SetContent(app, CreateHintMessage(t))
 
 			/*
