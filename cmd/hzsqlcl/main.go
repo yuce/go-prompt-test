@@ -19,6 +19,14 @@ import (
 )
 
 func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
+	var viewHolder *holder.Widget
+
+	pages := []hzsqlcl.WizardPage{
+		hzsqlcl.NewNameAndTypePage(),
+		hzsqlcl.NewPageWidget2(),
+	}
+
+	createMappingWizard := hzsqlcl.NewWizard(pages)
 	palette := gowid.Palette{
 		"hint":       gowid.MakePaletteEntry(gowid.ColorBlack, gowid.NewUrwidColor("light gray")),
 		"error":      gowid.MakePaletteEntry(gowid.ColorRed, gowid.ColorDefault),
@@ -32,6 +40,11 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		},
 	)
 	editBox := hzsqlcl.NewEditBox(resultWidget, func(app gowid.IApp, resultWidget gowid.IWidget, enteredText string) {
+		if enteredText == "wizard;" {
+			createMappingWizard.Open(viewHolder, gowid.RenderWithRatio{R: 0.5}, app)
+			return
+		}
+
 		trimmedEnteredText := strings.TrimSuffix(enteredText, ";")
 		//trimmedEnteredText := strings.TrimPrefix(strings.TrimSuffix(enteredText, ";\n"), "> ")
 		//resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateResultLineMessage(trimmedEnteredText))
@@ -64,8 +77,9 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		Frame:       framed.UnicodeFrame,
 		TitleWidget: holder.New(text.New(" localhost:5701 ")),
 	})
+	viewHolder = holder.New(view)
 	return gowid.NewApp(gowid.AppArgs{
-		View:    view,
+		View:    viewHolder,
 		Palette: palette,
 	})
 }
