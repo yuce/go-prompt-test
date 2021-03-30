@@ -36,7 +36,8 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		"error":      gowid.MakePaletteEntry(gowid.ColorRed, gowid.ColorDefault),
 		"line":       gowid.MakeStyledPaletteEntry(gowid.NewUrwidColor("black"), gowid.NewUrwidColor("light gray"), gowid.StyleBold),
 		"resultLine": gowid.MakePaletteEntry(gowid.ColorWhite, gowid.ColorDefault),
-		"query":      gowid.MakePaletteEntry(gowid.ColorOrange, gowid.ColorDefault),
+		"query":      gowid.MakePaletteEntry(gowid.ColorLightBlue, gowid.ColorDefault),
+		"keyword":    gowid.MakePaletteEntry(gowid.ColorBlue, gowid.ColorDefault),
 	}
 	hline := styled.New(fill.New('-'), gowid.MakePaletteRef("line"))
 	resultWidget := text.NewFromContentExt(hzsqlcl.CreateHintMessage(""),
@@ -58,7 +59,7 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		} else if strings.Trim(strings.TrimRight(enteredText, ";"), " \n\t") == "help" {
 			currentContent := resultWidget.(*text.Widget).Content()
 			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "> ", Style: nil})
-			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: enteredText, Style: gowid.MakePaletteRef("query")})
+			addQuery(currentContent, enteredText)
 			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "\n", Style: nil})
 
 			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "Welcome! Some available commands are: \n", Style: gowid.MakePaletteRef("resultLine")})
@@ -83,12 +84,12 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		currentContent := resultWidget.(*text.Widget).Content()
 
 		currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "> ", Style: nil})
-		currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: enteredText, Style: gowid.MakePaletteRef("query")})
+		addQuery(currentContent, enteredText)
 		currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "\n", Style: nil})
 
 		if err != nil {
 			errorMessage := hzsqlcl.CreateErrorMessage(err.Error())
-			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: errorMessage.String(), Style: gowid.MakePaletteRef("error")})
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: errorMessage.String()+"\n", Style: gowid.MakePaletteRef("error")})
 		} else {
 			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: handleSqlResult(res), Style: gowid.MakePaletteRef("resultLine")})
 		}
@@ -115,6 +116,33 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		View:    viewHolder,
 		Palette: palette,
 	})
+}
+
+func addQuery(currentContent text.IContent, enteredText string) {
+	splitted := strings.Split(enteredText, " ")
+
+	numberOfItems := len(splitted)
+
+	keywords := []string{"select", "insert", "create", "mapping", "job", "type", "options", "int", "varchar", "as", "sink", "into", "from", "options"}
+
+	for i, v := range splitted {
+		var found bool
+		for _, k := range keywords {
+
+			if strings.ToLower(v) == k {
+				found = true
+			}
+		}
+		if found {
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: v, Style: gowid.MakePaletteRef("keyword")})
+		} else {
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: v, Style: gowid.MakePaletteRef("query")})
+		}
+		if i != numberOfItems-1 { // not last
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: " ", Style: gowid.MakePaletteRef("query")})
+		}
+	}
+
 }
 
 func main() {
@@ -176,6 +204,10 @@ func handleSqlResult(result sql.Result) string {
 	table := tablewriter.NewWriter(&byteBuffer)
 
 	i := 0
+
+	if !rows.HasNext() {
+		return "OK\n"
+	}
 	for rows.HasNext() {
 		row := rows.Next()
 		rowMetadata := row.Metadata()
