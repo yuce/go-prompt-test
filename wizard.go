@@ -5,6 +5,9 @@ import (
 	"hzsqlcl/components"
 	"hzsqlcl/form"
 
+	"github.com/gcla/gowid/widgets/cellmod"
+	"github.com/gcla/gowid/widgets/shadow"
+
 	"github.com/gcla/gowid/widgets/grid"
 
 	"github.com/gcla/gowid/widgets/holder"
@@ -106,9 +109,12 @@ func (wiz *Wizard) buttonBarForPage() gowid.IWidget {
 }
 
 func (wiz *Wizard) widgetForCurrentPage() gowid.IWidget {
+	borderStyle := gowid.MakePaletteEntry(form.DefaultButton, form.DefaultBackground)
+	backgroundStyle := gowid.MakePaletteEntry(form.DefaultText, form.DefaultBackground)
+
 	page := wiz.pages[wiz.currentPage]
 	flow := gowid.RenderFlow{}
-	hline := styled.New(fill.New(' '), gowid.MakePaletteRef("line"))
+	hline := styled.New(fill.New('-'), borderStyle)
 	btnBar := wiz.buttonBarForPage()
 	pilew := components.NewResizeablePile([]gowid.IContainerWidget{
 		&gowid.ContainerWidget{IWidget: page, D: gowid.RenderWithWeight{2}},
@@ -124,7 +130,8 @@ func (wiz *Wizard) widgetForCurrentPage() gowid.IWidget {
 		Frame: framed.UnicodeFrame,
 		Title: fmt.Sprintf(" Create Mapping: %s ", page.PageName()),
 	})
-	return frame
+	styledFrame := shadow.New(cellmod.Opaque(styled.New(frame, backgroundStyle)), 1)
+	return styledFrame
 }
 
 func (wiz *Wizard) gotoNextPage(app gowid.IApp) {

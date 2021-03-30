@@ -40,6 +40,7 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		"resultLine": gowid.MakePaletteEntry(gowid.ColorWhite, gowid.ColorDefault),
 		"query":      gowid.MakePaletteEntry(gowid.ColorLightBlue, gowid.ColorDefault),
 		"keyword":    gowid.MakePaletteEntry(gowid.ColorBlue, gowid.ColorDefault),
+		"form":       gowid.MakePaletteEntry(gowid.ColorWhite, gowid.ColorBlack),
 	}
 	hline := styled.New(fill.New('-'), gowid.MakePaletteRef("line"))
 	resultWidget := text.NewFromContentExt(hzsqlcl.CreateHintMessage(""),

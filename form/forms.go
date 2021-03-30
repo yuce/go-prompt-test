@@ -3,16 +3,28 @@ package form
 import (
 	"hzsqlcl/components"
 
+	"github.com/gcla/gowid/widgets/fill"
+
+	"github.com/gcla/gowid/widgets/shadow"
+
+	"github.com/gcla/gowid/widgets/cellmod"
+
 	"github.com/gcla/gowid"
 	"github.com/gcla/gowid/widgets/button"
 	"github.com/gcla/gowid/widgets/columns"
-	"github.com/gcla/gowid/widgets/fill"
 	"github.com/gcla/gowid/widgets/framed"
 	"github.com/gcla/gowid/widgets/overlay"
 	"github.com/gcla/gowid/widgets/pile"
 	"github.com/gcla/gowid/widgets/styled"
 	"github.com/gcla/gowid/widgets/text"
 	"github.com/gcla/gowid/widgets/vpadding"
+)
+
+var (
+	DefaultBackground = gowid.NewUrwidColor("white")
+	DefaultButton     = gowid.NewUrwidColor("dark blue")
+	DefaultButtonText = gowid.NewUrwidColor("yellow")
+	DefaultText       = gowid.NewUrwidColor("black")
 )
 
 type FormFragment interface {
@@ -74,8 +86,11 @@ func (f *FormContainer) buttonBar() gowid.IWidget {
 }
 
 func (f *FormContainer) frame() gowid.IWidget {
+	//buttonStyle := gowid.MakePaletteEntry(DefaultButtonText, DefaultButton)
+	borderStyle := gowid.MakePaletteEntry(DefaultButton, DefaultBackground)
+	backgroundStyle := gowid.MakePaletteEntry(DefaultText, DefaultBackground)
 	flow := gowid.RenderFlow{}
-	hline := styled.New(fill.New(' '), gowid.MakePaletteRef("line"))
+	hline := styled.New(fill.New('-'), borderStyle)
 	pilew := components.NewResizeablePile([]gowid.IContainerWidget{
 		&gowid.ContainerWidget{IWidget: f.widget, D: gowid.RenderWithWeight{2}},
 		&gowid.ContainerWidget{vpadding.New(
@@ -89,8 +104,10 @@ func (f *FormContainer) frame() gowid.IWidget {
 	frame := framed.New(pilew, framed.Options{
 		Frame: framed.UnicodeFrame,
 		Title: f.title,
+		Style: backgroundStyle,
 	})
-	return frame
+	styledFrame := shadow.New(cellmod.Opaque(styled.New(frame, backgroundStyle)), 1)
+	return styledFrame
 }
 
 type FieldFormState struct {
@@ -104,10 +121,19 @@ type FieldForm struct {
 }
 
 func NewFieldForm(items ...string) *FieldForm {
+	//buttonStyle := gowid.MakePaletteEntry(DefaultButtonText, DefaultButton)
+	//backgroundStyle := gowid.MakePaletteEntry(DefaultText, DefaultBackground)
+	//borderStyle := gowid.MakePaletteEntry(DefaultButton, DefaultBackground)
 	widget := &FieldForm{fieldFormState: FieldFormState{FieldType: "VARCHAR"}}
 	fieldNameWidget := NewLabeledEdit(&widget.fieldFormState.FieldName, "Field Name:")
 	fieldTypeWidget := NewLabeledRadioGroup(&widget.fieldFormState.FieldType, "Field Type:", items...)
-	widget.IWidget = pile.NewFixed(fieldNameWidget, fieldTypeWidget)
+	pl := pile.NewFixed(fieldNameWidget, fieldTypeWidget)
+	//w := hpadding.New(
+	//	styled.NewExt(pl, backgroundStyle, buttonStyle),
+	//	gowid.HAlignMiddle{},
+	//	gowid.RenderFixed{},
+	//)
+	widget.IWidget = pl
 	return widget
 }
 
