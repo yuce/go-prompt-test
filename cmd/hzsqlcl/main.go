@@ -89,9 +89,9 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 
 		if err != nil {
 			errorMessage := hzsqlcl.CreateErrorMessage(err.Error())
-			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: errorMessage.String()+"\n", Style: gowid.MakePaletteRef("error")})
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: errorMessage.String() + "\n", Style: gowid.MakePaletteRef("error")})
 		} else {
-			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: handleSqlResult(res), Style: gowid.MakePaletteRef("resultLine")})
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: handleSqlResult(res, enteredText), Style: gowid.MakePaletteRef("resultLine")})
 		}
 		resultWidget.(*text.Widget).SetContent(app, currentContent)
 	})
@@ -119,28 +119,50 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 }
 
 func addQuery(currentContent text.IContent, enteredText string) {
-	splitted := strings.Split(enteredText, " ")
-
-	numberOfItems := len(splitted)
-
 	keywords := []string{"select", "insert", "create", "mapping", "job", "type", "options", "int", "varchar", "as", "sink", "into", "from", "options"}
 
-	for i, v := range splitted {
+	accumulator := ""
+
+	for i := 0; i < len(enteredText); i++ {
+		currentChar := enteredText[i]
+		if currentChar == ' ' || currentChar == '\n' || currentChar == '=' || currentChar == ';' || currentChar == ',' || currentChar == '(' || currentChar == ')' {
+			var found bool
+			for _, k := range keywords {
+
+				if strings.ToLower(accumulator) == k {
+					found = true
+				}
+			}
+			if found {
+				currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: accumulator, Style: gowid.MakePaletteRef("keyword")})
+			} else {
+				currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: accumulator, Style: gowid.MakePaletteRef("query")})
+			}
+			if currentChar == ' ' || currentChar == '\n' {
+				currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: string(currentChar), Style: gowid.MakePaletteRef("query")})
+			} else {
+				currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: string(currentChar), Style: gowid.MakePaletteRef("resultLine")})
+			}
+			accumulator = ""
+		} else {
+			accumulator = accumulator + string(currentChar)
+		}
+
+	}
+	if accumulator != "" {
 		var found bool
 		for _, k := range keywords {
 
-			if strings.ToLower(v) == k {
+			if strings.ToLower(accumulator) == k {
 				found = true
 			}
 		}
 		if found {
-			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: v, Style: gowid.MakePaletteRef("keyword")})
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: accumulator, Style: gowid.MakePaletteRef("keyword")})
 		} else {
-			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: v, Style: gowid.MakePaletteRef("query")})
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: accumulator, Style: gowid.MakePaletteRef("query")})
 		}
-		if i != numberOfItems-1 { // not last
-			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: " ", Style: gowid.MakePaletteRef("query")})
-		}
+
 	}
 
 }
@@ -196,8 +218,13 @@ func unhandled(app gowid.IApp, ev interface{}) bool {
 }
 */
 
-func handleSqlResult(result sql.Result) string {
+func handleSqlResult(result sql.Result, query string) string {
 	rows := result.Rows()
+	if !rows.HasNext() && strings.HasPrefix(strings.ToLower(strings.TrimLeft(query, " \n\t")), "select") {
+		return "NO ROWS\n"
+	} else if !rows.HasNext() {
+		return "OK\n"
+	}
 
 	var byteBuffer bytes.Buffer
 	//var tempWriter io.StringWriter
@@ -205,9 +232,6 @@ func handleSqlResult(result sql.Result) string {
 
 	i := 0
 
-	if !rows.HasNext() {
-		return "OK\n"
-	}
 	for rows.HasNext() {
 		row := rows.Next()
 		rowMetadata := row.Metadata()
