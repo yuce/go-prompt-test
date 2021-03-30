@@ -73,20 +73,20 @@ func handleSqlResult(result sql.Result) string {
 		// print column names once
 		if counter == 0 {
 			for i := 0; i < columnCount; i++ {
-				fmt.Print(" | " + rowMetadata.Column(i).Name())
+				res += " | " + rowMetadata.Column(i).Name()
 			}
-			fmt.Println()
+			res += "\n"
 		}
 		counter++
 		for i := 0; i < columnCount; i++ {
-			fmt.Print("Value: ")
+			res += "Value: "
 			// column := rowMetadata.Column(i)
 			// column.Type()
-			fmt.Print(row.ValueAtIndex(i))
-			fmt.Print(" ")
+			res += fmt.Sprint(row.ValueAtIndex(i))
+			res += " "
 
 		}
-		fmt.Println()
+		res += "\n"
 	}
 	return res
 }
