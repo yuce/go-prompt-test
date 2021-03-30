@@ -125,38 +125,56 @@ func (wiz *Wizard) gotoNextPage(app gowid.IApp) {
 	}
 }
 
+const (
+	MappingName = "mappingName"
+	MappingType = "mappingType"
+)
+
 type NameAndTypePage struct {
 	gowid.IWidget
+	mappingName string
+	mappingType string
+	editName    *edit.Widget
 }
 
 func NewNameAndTypePage() *NameAndTypePage {
+	page := &NameAndTypePage{
+		mappingType: "Kafka",
+	}
 	txtName := text.New("Mapping Name:")
 	editName := edit.New()
+	editName.OnTextSet(gowid.WidgetCallback{"editMappingName", func(app gowid.IApp, w gowid.IWidget) {
+		edt := w.(*edit.Widget)
+		page.mappingName = edt.Text()
+	}})
 	txtType := text.New("Mapping Type:")
 	fixed := gowid.RenderFixed{}
-	rbgroup := make([]radio.IWidget, 0)
-	rb1 := radio.New(&rbgroup)
-	rbt1 := text.New(" Kafka ")
-	rb2 := radio.New(&rbgroup)
-	rbt2 := text.New(" File ")
-	c2cols := []gowid.IContainerWidget{
-		&gowid.ContainerWidget{rb1, fixed},
-		&gowid.ContainerWidget{rbt1, fixed},
-		&gowid.ContainerWidget{rb2, fixed},
-		&gowid.ContainerWidget{rbt2, fixed},
+	rbgroup := []radio.IWidget{}
+	c2cols := []gowid.IContainerWidget{}
+	for _, mappingType := range []string{"Kafka", "File"} {
+		func(mt string) {
+			rb := radio.New(&rbgroup)
+			rb.OnClick(gowid.WidgetCallback{fmt.Sprintf("cbRadio%s", mt), func(app gowid.IApp, w gowid.IWidget) {
+				page.mappingType = mt
+			}})
+			rbt := text.New(fmt.Sprintf(" %s ", mt))
+			c2cols = append(c2cols, &gowid.ContainerWidget{rb, fixed}, &gowid.ContainerWidget{rbt, fixed})
+		}(mappingType)
 	}
 	cols2 := columns.New(c2cols)
 	widgets := []gowid.IWidget{txtName, editName, txtType, cols2}
-	grid1 := grid.New(widgets, 20, 3, 1, gowid.HAlignMiddle{})
-	return &NameAndTypePage{grid1}
+	grid1 := grid.New(widgets, 20, 1, 1, gowid.HAlignMiddle{})
+	page.IWidget = grid1
+	return page
 }
 
 func (p NameAndTypePage) PageName() string {
-	return "Name and Type"
+	return "Source"
 }
 
 func (p NameAndTypePage) UpdateState(state map[string]interface{}) {
-	state["foo"] = "bar"
+	state[MappingName] = p.mappingName
+	state[MappingType] = p.mappingType
 }
 
 type PageWidget2 struct {
