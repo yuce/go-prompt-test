@@ -31,7 +31,12 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		},
 	)
 	editBox := hzsqlcl.NewEditBox(resultWidget, func(app gowid.IApp, resultWidget gowid.IWidget, enteredText string) {
-		resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateResultLineMessage(enteredText))
+		res, err := client.ExecuteSQL(enteredText)
+		if err != nil {
+			resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateErrorMessage(err.Error()))
+		} else {
+			resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateHintMessage(handleSqlResult(res)))
+		}
 	})
 	flow := gowid.RenderFlow{}
 	pilew := hzsqlcl.NewResizeablePile([]gowid.IContainerWidget{
@@ -57,20 +62,19 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 
 func main() {
 	// connect the client
-	/*
-		cb := hz.NewClientConfigBuilder()
-		cb.Cluster().SetName("jet")
-		config, err := cb.Config()
-		if err != nil {
-			log.Fatal(err)
-		}
-		client, err = hz.StartNewClientWithConfig(config)
-		if err != nil {
-			log.Fatal(err)
-		}
-	*/
 
-	//populateMap(client)
+	cb := hz.NewClientConfigBuilder()
+	cb.Cluster().SetName("jet")
+	config, err := cb.Config()
+	if err != nil {
+		log.Fatal(err)
+	}
+	client, err = hz.StartNewClientWithConfig(config)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// populateMap(client)
 
 	statusBar := hzsqlcl.NewStatusBar()
 	app, err := createApp(statusBar)
@@ -118,20 +122,20 @@ func handleSqlResult(result sql.Result) string {
 		// print column names once
 		if counter == 0 {
 			for i := 0; i < columnCount; i++ {
-				fmt.Print(" | " + rowMetadata.Column(i).Name())
+				res += " | " + rowMetadata.Column(i).Name()
 			}
-			fmt.Println()
+			res += "\n"
 		}
 		counter++
 		for i := 0; i < columnCount; i++ {
-			fmt.Print("Value: ")
+			res += "Value: "
 			// column := rowMetadata.Column(i)
 			// column.Type()
-			fmt.Print(row.ValueAtIndex(i))
-			fmt.Print(" ")
+			res += fmt.Sprint(row.ValueAtIndex(i))
+			res += " "
 
 		}
-		fmt.Println()
+		res += "\n"
 	}
 	return res
 }
