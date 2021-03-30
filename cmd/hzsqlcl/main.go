@@ -90,7 +90,7 @@ func main() {
 		"error":  gowid.MakePaletteEntry(gowid.ColorWhite, gowid.ColorRed),
 		"line":   gowid.MakeStyledPaletteEntry(gowid.NewUrwidColor("black"), gowid.NewUrwidColor("light gray"), gowid.StyleBold),
 	}
-	hline := styled.New(fill.New('~'), gowid.MakePaletteRef("line"))
+	hline := styled.New(fill.New('-'), gowid.MakePaletteRef("line"))
 	txt := text.NewFromContentExt(createHintMessage("Hit tab to auto-complete"),
 		text.Options{
 			Align: gowid.HAlignLeft{},
@@ -104,7 +104,7 @@ func main() {
 	editBox := NewEditBox(resultWidget)
 	flow := gowid.RenderFlow{}
 	pilew := NewResizeablePile([]gowid.IContainerWidget{
-		&gowid.ContainerWidget{IWidget: resultWidget, D: flow},
+		&gowid.ContainerWidget{IWidget: resultWidget, D: gowid.RenderWithWeight{2}},
 		//&gowid.ContainerWidget{IWidget: divider.NewBlank(), D: flow},
 		&gowid.ContainerWidget{vpadding.New(
 			pile.New([]gowid.IContainerWidget{
