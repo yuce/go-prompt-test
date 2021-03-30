@@ -14,4 +14,4 @@ require (
 	golang.org/x/text v0.3.5 // indirect
 )
 
-replace github.com/hazelcast/hazelcast-go-client/v4 v4.0.0 => github.com/srknzl/hazelcast-go-client/v4 v4.0.0-projectx.2
+replace github.com/hazelcast/hazelcast-go-client/v4 v4.0.0 => github.com/srknzl/hazelcast-go-client/v4 v4.0.0-projectx.3
