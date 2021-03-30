@@ -144,8 +144,8 @@ func (wiz *Wizard) gotoNextPage(app gowid.IApp) {
 const (
 	MappingName      = "mappingName"
 	MappingType      = "mappingType"
-	MappingTypeKafka = "Kafka"
-	MappingTypeFile  = "File"
+	MappingTypeKafka = "Kafka - enter Kafka topic name as the mapping name"
+	MappingTypeFile  = "File - help to be done"
 )
 
 type NameAndTypePage struct {
@@ -185,12 +185,12 @@ type FieldsPage struct {
 
 func NewFieldsPage() *FieldsPage {
 	widget := &FieldsPage{}
-	widget.IWidget = holder.New(text.New("Click Add Field button to add fields."))
+	widget.IWidget = holder.New(text.New("Specify to which SQL columns should the Kafka topic be mapped.\n\nClick Add Column button to add columns."))
 	return widget
 }
 
 func (p FieldsPage) PageName() string {
-	return "Fields"
+	return "Map Kafka topic to table"
 }
 
 func (p FieldsPage) UpdateState(state map[string]interface{}) {
@@ -201,9 +201,9 @@ func (p FieldsPage) UpdateState(state map[string]interface{}) {
 
 func (p *FieldsPage) ExtraButtons() []*button.Widget {
 	fieldTypes := []string{"VARCHAR", "INT"}
-	addFieldBtn := button.New(text.New("Add Field"))
+	addFieldBtn := button.New(text.New("Add Column"))
 	addFieldBtn.OnClick(gowid.WidgetCallback{"cbAddField", func(app gowid.IApp, w gowid.IWidget) {
-		frm := form.NewFormContainer("Add Field", form.NewFieldForm(fieldTypes...), nil, func(app gowid.IApp, state interface{}) {
+		frm := form.NewFormContainer("Add Column", form.NewFieldForm(fieldTypes...), nil, func(app gowid.IApp, state interface{}) {
 			field := state.(form.FieldFormState)
 			p.fields = append(p.fields, field)
 			hl := p.IWidget.(*holder.Widget)
@@ -228,7 +228,7 @@ type OptionsPage struct {
 
 func NewOptionsPage() *OptionsPage {
 	widget := &OptionsPage{}
-	widget.IWidget = holder.New(text.New("Click Add Option button to add fields."))
+	widget.IWidget = holder.New(text.New("Click Add Option button to add options."))
 	return widget
 }
 

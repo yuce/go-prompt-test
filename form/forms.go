@@ -125,8 +125,8 @@ func NewFieldForm(items ...string) *FieldForm {
 	//backgroundStyle := gowid.MakePaletteEntry(DefaultText, DefaultBackground)
 	//borderStyle := gowid.MakePaletteEntry(DefaultButton, DefaultBackground)
 	widget := &FieldForm{fieldFormState: FieldFormState{FieldType: "VARCHAR"}}
-	fieldNameWidget := NewLabeledEdit(&widget.fieldFormState.FieldName, "Field Name:")
-	fieldTypeWidget := NewLabeledRadioGroup(&widget.fieldFormState.FieldType, "Field Type:", items...)
+	fieldNameWidget := NewLabeledEdit(&widget.fieldFormState.FieldName, "Column Name:")
+	fieldTypeWidget := NewLabeledRadioGroup(&widget.fieldFormState.FieldType, "Column Type:", items...)
 	pl := pile.NewFixed(fieldNameWidget, fieldTypeWidget)
 	//w := hpadding.New(
 	//	styled.NewExt(pl, backgroundStyle, buttonStyle),
