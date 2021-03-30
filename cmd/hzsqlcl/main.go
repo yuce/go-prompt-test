@@ -2,11 +2,9 @@ package main
 
 import (
 	"fmt"
-	"hzsqlcl"
-	"time"
+	"strings"
 
 	"hzsqlcl"
-	"strings"
 
 	"github.com/gcla/gowid"
 	"github.com/gcla/gowid/widgets/fill"
