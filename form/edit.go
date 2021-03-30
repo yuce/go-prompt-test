@@ -14,6 +14,7 @@ type LabeledEdit struct {
 	target *string
 }
 
+
 func NewLabeledEdit(target *string, label string) *LabeledEdit {
 	labelWidget := text.New(label)
 	widget := &LabeledEdit{target: target}

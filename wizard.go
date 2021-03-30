@@ -148,8 +148,12 @@ func (wiz *Wizard) gotoNextPage(app gowid.IApp) {
 const (
 	MappingName      = "mappingName"
 	MappingType      = "mappingType"
-	MappingTypeKafka = "Kafka - enter Kafka topic name as the mapping name"
-	MappingTypeFile  = "File - help to be done"
+	SerializationType      = "serializationType"
+	ConnectionAddress      = "connectionAddress"
+	MappingTypeKafka = "Kafka"
+	MappingTypeFile  = "File"
+	MappingSerializationJson  = "json"
+	MappingSerializationAvro  = "avro"
 )
 
 type NameAndTypePage struct {
@@ -225,44 +229,102 @@ func (p *FieldsPage) ExtraButtons() []*button.Widget {
 	return []*button.Widget{addFieldBtn}
 }
 
+type SerializationPage struct {
+	gowid.IWidget
+	serializationType string
+}
+
+func NewSerializationPage() *SerializationPage {
+	widget := &SerializationPage{}
+
+	serializationGroup := form.NewLabeledRadioGroup(&widget.serializationType, "Serialization Type: ", MappingSerializationJson, MappingSerializationAvro)
+	widget.IWidget = pile.NewFixed(serializationGroup)
+
+	return widget
+}
+
+func (p SerializationPage) PageName() string {
+	return "Serizalization"
+}
+
+func (p SerializationPage) ExtraButtons() []*button.Widget {
+	return nil
+}
+
+func (p SerializationPage) UpdateState(state map[string]interface{}) {
+	state[fmt.Sprintf("Option_%s", "value_format")] = p.serializationType
+	//state[SerializationType] = p.serializationType
+}
+
 type OptionsPage struct {
 	gowid.IWidget
-	options []form.OptionFormState
+	connectionAddress string
 }
 
 func NewOptionsPage() *OptionsPage {
-	widget := &OptionsPage{}
-	widget.IWidget = holder.New(text.New("Click Add Option button to add options."))
+	widget := &OptionsPage{
+		connectionAddress: "127.0.0.1:9092",
+	}
+
+	nameWidget := form.NewLabeledEdit(&widget.connectionAddress, "Connection address: ")
+	widget.IWidget = pile.NewFixed(nameWidget)
+
 	return widget
 }
 
 func (p OptionsPage) PageName() string {
-	return "Options"
+	return "Additional Options"
 }
 
 func (p OptionsPage) UpdateState(state map[string]interface{}) {
-	for _, option := range p.options {
-		state[fmt.Sprintf("Option_%s", option.OptionName)] = option.OptionValue
-	}
+	state[fmt.Sprintf("Option_%s", "bootstrap.server")] = p.connectionAddress
 }
 
 func (p *OptionsPage) ExtraButtons() []*button.Widget {
-	addOptionBtn := button.New(text.New("Add Option"))
-	addOptionBtn.OnClick(gowid.WidgetCallback{"cbAddOption", func(app gowid.IApp, w gowid.IWidget) {
-		frm := form.NewFormContainer("Add Option", form.NewOptionForm(), nil, func(app gowid.IApp, state interface{}) {
-			option := state.(form.OptionFormState)
-			p.options = append(p.options, option)
-			hl := p.IWidget.(*holder.Widget)
-			widgets := []gowid.IWidget{}
-			for _, f := range p.options {
-				txtOptionName := text.New(f.OptionName)
-				txtOptionType := text.New(f.OptionValue)
-				widgets = append(widgets, txtOptionName, txtOptionType)
-			}
-			grd := grid.New(widgets, 20, 3, 1, gowid.HAlignMiddle{})
-			hl.SetSubWidget(grd, app)
-		})
-		frm.Open(app.SubWidget().(*holder.Widget), gowid.RenderWithRatio{R: 0.5}, app)
-	}})
-	return []*button.Widget{addOptionBtn}
+	return nil
 }
+
+// Original general purpose OptionsPage
+//
+//type OptionsPage struct {
+//	gowid.IWidget
+//	options []form.OptionFormState
+//}
+//
+//func NewOptionsPage() *OptionsPage {
+//	widget := &OptionsPage{}
+//	widget.IWidget = holder.New(text.New("Click Add Option button to add options."))
+//
+//	return widget
+//}
+//
+//func (p OptionsPage) PageName() string {
+//	return "Options"
+//}
+//
+//func (p OptionsPage) UpdateState(state map[string]interface{}) {
+//	for _, option := range p.options {
+//		state[fmt.Sprintf("Option_%s", option.OptionName)] = option.OptionValue
+//	}
+//}
+//
+//func (p *OptionsPage) ExtraButtons() []*button.Widget {
+//	addOptionBtn := button.New(text.New("Add Option"))
+//	addOptionBtn.OnClick(gowid.WidgetCallback{"cbAddOption", func(app gowid.IApp, w gowid.IWidget) {
+//		frm := form.NewFormContainer("Add Option", form.NewOptionForm(), nil, func(app gowid.IApp, state interface{}) {
+//			option := state.(form.OptionFormState)
+//			p.options = append(p.options, option)
+//			hl := p.IWidget.(*holder.Widget)
+//			widgets := []gowid.IWidget{}
+//			for _, f := range p.options {
+//				txtOptionName := text.New(f.OptionName)
+//				txtOptionType := text.New(f.OptionValue)
+//				widgets = append(widgets, txtOptionName, txtOptionType)
+//			}
+//			grd := grid.New(widgets, 20, 3, 1, gowid.HAlignMiddle{})
+//			hl.SetSubWidget(grd, app)
+//		})
+//		frm.Open(app.SubWidget().(*holder.Widget), gowid.RenderWithRatio{R: 0.5}, app)
+//	}})
+//	return []*button.Widget{addOptionBtn}
+//}
