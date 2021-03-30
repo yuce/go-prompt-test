@@ -77,6 +77,10 @@ func (w *EditBox) UserInput(ev interface{}, size gowid.IRenderSize, focus gowid.
 			inputWidget.SetText(command, app)
 			inputWidget.SetCursorPos(len(command), app)
 
+		case tcell.KeyCtrlL:
+			inputWidget := w.IWidget.(*edit.Widget)
+			inputWidget.SetText("", app)
+			inputWidget.SetCursorPos(0, app)
 
 		case tcell.KeyTAB:
 			t := w.IWidget.(*edit.Widget).Text()
