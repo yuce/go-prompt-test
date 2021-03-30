@@ -33,12 +33,9 @@ func (w *EditBox) UserInput(ev interface{}, size gowid.IRenderSize, focus gowid.
 			t := w.IWidget.(*edit.Widget).Text()
 
 			if strings.HasSuffix(t, ";") {
-				resultWidgetText := w.resultWidget.Content().String()
-				newText := resultWidgetText + "> " + t + "\n"
-
 				w.IWidget.(*edit.Widget).SetText("", app)
 				if w.handler != nil {
-					w.handler(app, w.resultWidget, newText)
+					w.handler(app, w.resultWidget, t)
 				}
 			} else {
 				inputWidget := w.IWidget.(*edit.Widget)

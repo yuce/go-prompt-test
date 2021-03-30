@@ -33,7 +33,8 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		},
 	)
 	editBox := hzsqlcl.NewEditBox(resultWidget, func(app gowid.IApp, resultWidget gowid.IWidget, enteredText string) {
-		trimmedEnteredText := strings.TrimPrefix(strings.TrimSuffix(enteredText, ";\n"), "> ")
+		trimmedEnteredText := strings.TrimSuffix(enteredText, ";")
+		//trimmedEnteredText := strings.TrimPrefix(strings.TrimSuffix(enteredText, ";\n"), "> ")
 		//resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateResultLineMessage(trimmedEnteredText))
 		res, err := client.ExecuteSQL(trimmedEnteredText)
 		if err != nil {
