@@ -22,13 +22,13 @@ import (
 
 func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 	var viewHolder *holder.Widget
+	var editBox *hzsqlcl.EditBox
 
 	pages := []hzsqlcl.WizardPage{
 		hzsqlcl.NewNameAndTypePage(),
 		hzsqlcl.NewPageWidget2(),
 	}
 
-	createMappingWizard := hzsqlcl.NewWizard(pages)
 	palette := gowid.Palette{
 		"hint":       gowid.MakePaletteEntry(gowid.ColorBlack, gowid.NewUrwidColor("light gray")),
 		"error":      gowid.MakePaletteEntry(gowid.ColorRed, gowid.ColorDefault),
@@ -41,7 +41,14 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 			Align: gowid.HAlignLeft{},
 		},
 	)
-	editBox := hzsqlcl.NewEditBox(resultWidget, func(app gowid.IApp, resultWidget gowid.IWidget, enteredText string) {
+	createMappingWizard := hzsqlcl.NewWizard(pages, func(app gowid.IApp, state hzsqlcl.WizardState) {
+		if generatedSQL, err := hzsqlcl.CreateSQLForCreateMapping(state); err != nil {
+			panic(err)
+		} else {
+			editBox.SetText(app, generatedSQL)
+		}
+	})
+	editBox = hzsqlcl.NewEditBox(resultWidget, func(app gowid.IApp, resultWidget gowid.IWidget, enteredText string) {
 		if enteredText == "w;" {
 			createMappingWizard.Open(viewHolder, gowid.RenderWithRatio{R: 0.5}, app)
 			return

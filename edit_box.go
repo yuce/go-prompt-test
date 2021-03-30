@@ -1,11 +1,12 @@
 package hzsqlcl
 
 import (
+	"strings"
+
 	"github.com/gcla/gowid"
 	"github.com/gcla/gowid/widgets/edit"
 	"github.com/gcla/gowid/widgets/text"
 	"github.com/gdamore/tcell"
-	"strings"
 )
 
 type EditBox struct {
@@ -39,25 +40,9 @@ func (w *EditBox) UserInput(ev interface{}, size gowid.IRenderSize, focus gowid.
 				}
 			} else {
 				inputWidget := w.IWidget.(*edit.Widget)
-				inputWidget.SetText(t + "\n", app)
-				inputWidget.SetCursorPos(inputWidget.CursorPos() + 1, app)
+				inputWidget.SetText(t+"\n", app)
+				inputWidget.SetCursorPos(inputWidget.CursorPos()+1, app)
 			}
-
-
-			//w.resultWidget.SetContent(app, CreateHintMessage(t))
-
-			/*
-				result, err := client.ExecuteSQL(t)
-				var responseMessage string
-				if err != nil {
-					responseMessage = fmt.Sprintf("could not execute sql %s", err)
-					w.resultWidget.SetContent(app, CreateHintMessage(responseMessage))
-				} else {
-					responseMessage = handleSqlResult(result)
-					w.resultWidget.SetContent(app, CreateErrorMessage(responseMessage))
-				}
-
-			*/
 		case tcell.KeyTAB:
 			t := w.IWidget.(*edit.Widget).Text()
 
@@ -72,6 +57,10 @@ func (w *EditBox) UserInput(ev interface{}, size gowid.IRenderSize, focus gowid.
 		}
 	}
 	return res
+}
+
+func (w *EditBox) SetText(app gowid.IApp, text string) {
+	w.IWidget.(*edit.Widget).SetText(text, app)
 }
 
 func (w *EditBox) autoComplete(t string, app gowid.IApp) {

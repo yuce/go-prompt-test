@@ -12,8 +12,6 @@ import (
 	"github.com/gcla/gowid/widgets/fill"
 	"github.com/gcla/gowid/widgets/framed"
 	"github.com/gcla/gowid/widgets/grid"
-
-	//"github.com/gcla/gowid/widgets/holder"
 	"github.com/gcla/gowid/widgets/overlay"
 	"github.com/gcla/gowid/widgets/pile"
 	"github.com/gcla/gowid/widgets/radio"
@@ -25,31 +23,41 @@ import (
 type WizardPage interface {
 	gowid.IWidget
 	PageName() string
+	UpdateState(state map[string]interface{})
 }
 
+type WizardState map[string]interface{}
+
+type WizardHandler func(app gowid.IApp, state WizardState)
+
 type Wizard struct {
-	currentPage         int
 	pages               []WizardPage
+	handler             WizardHandler
+	currentPage         int
 	currentHolderWidget *holder.Widget
 	savedContainer      gowid.ISettableComposite
 	savedSubWidget      gowid.IWidget
+	state               WizardState
 }
 
-func NewWizard(pages []WizardPage) *Wizard {
+func NewWizard(pages []WizardPage, handler WizardHandler) *Wizard {
 	if len(pages) == 0 {
 		panic("no wizard pages!")
 	}
-	return &Wizard{pages: pages}
+	return &Wizard{
+		pages:   pages,
+		handler: handler,
+	}
 }
 
 func (wiz *Wizard) Open(container gowid.ISettableComposite, width gowid.IWidgetDimension, app gowid.IApp) {
-	widget := wiz.widgetForCurrentPage()
-	hl := holder.New(widget)
-	wiz.currentHolderWidget = hl
+	wiz.currentPage = 0
+	wiz.state = map[string]interface{}{}
+	wiz.currentHolderWidget = holder.New(wiz.widgetForCurrentPage())
 	wiz.savedContainer = container
 	wiz.savedSubWidget = container.SubWidget()
-	ov := overlay.New(hl, container.SubWidget(),
-		gowid.VAlignMiddle{}, gowid.RenderFlow{}, // Intended to mean use as much vertical space as you need
+	ov := overlay.New(wiz.currentHolderWidget, wiz.savedSubWidget,
+		gowid.VAlignMiddle{}, gowid.RenderFlow{},
 		gowid.HAlignMiddle{}, width)
 	container.SetSubWidget(ov, app)
 }
@@ -62,12 +70,17 @@ func (wiz *Wizard) buttonBarForPage() gowid.IWidget {
 	isLastPage := wiz.currentPage == len(wiz.pages)-1
 	nextBtn := button.New(text.New("Next"))
 	nextBtn.OnClick(gowid.WidgetCallback{"cbNext", func(app gowid.IApp, w gowid.IWidget) {
+		currentPage := wiz.pages[wiz.currentPage]
+		currentPage.UpdateState(wiz.state)
 		wiz.gotoNextPage(app)
 	}})
 
 	okBtn := button.New(text.New("OK"))
 	okBtn.OnClick(gowid.WidgetCallback{"cbOK", func(app gowid.IApp, w gowid.IWidget) {
-		fmt.Println("OK")
+		if wiz.handler != nil {
+			wiz.handler(app, wiz.state)
+		}
+		wiz.close(app)
 	}})
 	cancelBtn := button.New(text.New("Cancel"))
 	cancelBtn.OnClick(gowid.WidgetCallback{"cbCancel", func(app gowid.IApp, w gowid.IWidget) {
@@ -142,6 +155,10 @@ func (p NameAndTypePage) PageName() string {
 	return "Name and Type"
 }
 
+func (p NameAndTypePage) UpdateState(state map[string]interface{}) {
+	state["foo"] = "bar"
+}
+
 type PageWidget2 struct {
 	gowid.IWidget
 }
@@ -156,4 +173,8 @@ func NewPageWidget2() *PageWidget2 {
 
 func (p PageWidget2) PageName() string {
 	return "Page 2"
+}
+
+func (p PageWidget2) UpdateState(state map[string]interface{}) {
+
 }
