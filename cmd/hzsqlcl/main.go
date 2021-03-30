@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 
@@ -17,6 +18,7 @@ import (
 	hz "github.com/hazelcast/hazelcast-go-client/v4/hazelcast"
 	"github.com/hazelcast/hazelcast-go-client/v4/hazelcast/property"
 	"github.com/hazelcast/hazelcast-go-client/v4/hazelcast/sql"
+	"github.com/olekukonko/tablewriter"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -145,34 +147,39 @@ func unhandled(app gowid.IApp, ev interface{}) bool {
 */
 
 func handleSqlResult(result sql.Result) string {
-	var res string
 	rows := result.Rows()
 
-	counter := 0
+	var byteBuffer bytes.Buffer
+	//var tempWriter io.StringWriter
+	table := tablewriter.NewWriter(&byteBuffer)
 
+	i := 0
 	for rows.HasNext() {
 		row := rows.Next()
 		rowMetadata := row.Metadata()
 		columnCount := rowMetadata.ColumnCount()
-		// print column names once
-		if counter == 0 {
-			for i := 0; i < columnCount; i++ {
-				res += " | " + rowMetadata.Column(i).Name()
-			}
-			res += "\n"
-		}
-		counter++
-		for i := 0; i < columnCount; i++ {
-			res += "Value: "
-			// column := rowMetadata.Column(i)
-			// column.Type()
-			res += fmt.Sprint(row.ValueAtIndex(i))
-			res += " "
 
+		tableRow := make([]string, columnCount)
+		for columnIndex := 0; columnIndex < columnCount; columnIndex++ {
+			if i == 0 {
+				tableRow[columnIndex] = rowMetadata.Column(columnIndex).Name()
+			} else {
+				tableRow[columnIndex] = fmt.Sprintf("%v", row.ValueAtIndex(columnIndex))
+			}
 		}
-		res += "\n"
+
+		if i == 0 {
+			table.SetHeader(tableRow)
+		} else {
+			table.Append(tableRow)
+		}
+
+		i++
 	}
-	return res
+
+	table.Render() // Send output
+
+	return byteBuffer.String()
 }
 
 // for testing
