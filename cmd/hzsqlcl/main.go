@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"hzsqlcl"
+	"time"
+
+	"hzsqlcl"
 	"strings"
 
 	"github.com/gcla/gowid"
