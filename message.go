@@ -16,6 +16,10 @@ func CreateHintMessage(msg string) *text.Content {
 	return CreateMessage(msg, "hint")
 }
 
+func CreateResultLineMessage(msg string) *text.Content {
+	return CreateMessage(msg, "resultLine")
+}
+
 func CreateErrorMessage(msg string) *text.Content {
 	return CreateMessage(msg, "error")
 }

@@ -22,6 +22,7 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		"hint":  gowid.MakePaletteEntry(gowid.ColorBlack, gowid.NewUrwidColor("light gray")),
 		"error": gowid.MakePaletteEntry(gowid.ColorWhite, gowid.ColorRed),
 		"line":  gowid.MakeStyledPaletteEntry(gowid.NewUrwidColor("black"), gowid.NewUrwidColor("light gray"), gowid.StyleBold),
+		"resultLine": gowid.MakePaletteEntry(gowid.ColorWhite, gowid.ColorBlack),
 	}
 	hline := styled.New(fill.New('-'), gowid.MakePaletteRef("line"))
 	resultWidget := text.NewFromContentExt(hzsqlcl.CreateHintMessage(""),
@@ -30,7 +31,7 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		},
 	)
 	editBox := hzsqlcl.NewEditBox(resultWidget, func(app gowid.IApp, resultWidget gowid.IWidget, enteredText string) {
-		resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateHintMessage(enteredText))
+		resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateResultLineMessage(enteredText))
 	})
 	flow := gowid.RenderFlow{}
 	pilew := hzsqlcl.NewResizeablePile([]gowid.IContainerWidget{
