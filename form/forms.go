@@ -70,12 +70,16 @@ func (f *FormContainer) buttonBar() gowid.IWidget {
 	cancelBtn.OnClick(gowid.WidgetCallback{"cbCancel", func(app gowid.IApp, w gowid.IWidget) {
 		f.close(app)
 	}})
-	buttons := []interface{}{}
+	buttons := []*button.Widget{}
 	for _, btn := range f.extraButtons {
 		buttons = append(buttons, btn)
 	}
 	buttons = append(buttons, cancelBtn, okBtn)
-	return columns.NewFixed(buttons...)
+	colsW := []gowid.IContainerWidget{}
+	for _, btn := range buttons {
+		colsW = append(colsW, components.MakeStylishButton(btn))
+	}
+	return columns.New(colsW)
 }
 
 func (f *FormContainer) frame() gowid.IWidget {
