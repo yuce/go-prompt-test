@@ -28,11 +28,11 @@ type WizardPage interface {
 }
 
 type Wizard struct {
-	//gowid.IWidget
-	//dlg         *dialog.Widget
 	currentPage         int
 	pages               []WizardPage
 	currentHolderWidget *holder.Widget
+	savedContainer      gowid.ISettableComposite
+	savedSubWidget      gowid.IWidget
 }
 
 func NewWizard(pages []WizardPage) *Wizard {
@@ -46,10 +46,16 @@ func (wiz *Wizard) Open(container gowid.ISettableComposite, width gowid.IWidgetD
 	widget := wiz.widgetForCurrentPage()
 	hl := holder.New(widget)
 	wiz.currentHolderWidget = hl
+	wiz.savedContainer = container
+	wiz.savedSubWidget = container.SubWidget()
 	ov := overlay.New(hl, container.SubWidget(),
 		gowid.VAlignMiddle{}, gowid.RenderFlow{}, // Intended to mean use as much vertical space as you need
 		gowid.HAlignMiddle{}, width)
 	container.SetSubWidget(ov, app)
+}
+
+func (wiz *Wizard) close(app gowid.IApp) {
+	wiz.savedContainer.SetSubWidget(wiz.savedSubWidget, app)
 }
 
 func (wiz *Wizard) buttonBarForPage() gowid.IWidget {
@@ -65,7 +71,7 @@ func (wiz *Wizard) buttonBarForPage() gowid.IWidget {
 	}})
 	cancelBtn := button.New(text.New("Cancel"))
 	cancelBtn.OnClick(gowid.WidgetCallback{"cbCancel", func(app gowid.IApp, w gowid.IWidget) {
-		fmt.Println("CANCEL")
+		wiz.close(app)
 	}})
 
 	buttons := []interface{}{cancelBtn}
