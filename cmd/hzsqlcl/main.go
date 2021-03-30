@@ -36,6 +36,7 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		"error":      gowid.MakePaletteEntry(gowid.ColorRed, gowid.ColorDefault),
 		"line":       gowid.MakeStyledPaletteEntry(gowid.NewUrwidColor("black"), gowid.NewUrwidColor("light gray"), gowid.StyleBold),
 		"resultLine": gowid.MakePaletteEntry(gowid.ColorWhite, gowid.ColorDefault),
+		"query":      gowid.MakePaletteEntry(gowid.ColorOrange, gowid.ColorDefault),
 	}
 	hline := styled.New(fill.New('-'), gowid.MakePaletteRef("line"))
 	resultWidget := text.NewFromContentExt(hzsqlcl.CreateHintMessage(""),
@@ -61,16 +62,19 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		//resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateResultLineMessage(trimmedEnteredText))
 		res, err := client.ExecuteSQL(trimmedEnteredText)
 
-		currentText := resultWidget.(*text.Widget).Content().String() + "> "
-		currentText += enteredText + "\n"
+		currentContent := resultWidget.(*text.Widget).Content()
+
+		currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "> ", Style: nil})
+		currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: enteredText, Style: gowid.MakePaletteRef("query")})
+		currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "\n", Style: nil})
 
 		if err != nil {
 			errorMessage := hzsqlcl.CreateErrorMessage(err.Error())
-			resultWidget.(*text.Widget).SetText(currentText+errorMessage.String()+"\n", app)
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: errorMessage.String(), Style: gowid.MakePaletteRef("error")})
 		} else {
-			result := hzsqlcl.CreateMessage(handleSqlResult(res), "resultLine")
-			resultWidget.(*text.Widget).SetText(currentText+result.String()+"\n", app)
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: handleSqlResult(res), Style: gowid.MakePaletteRef("resultLine")})
 		}
+		resultWidget.(*text.Widget).SetContent(app, currentContent)
 	})
 	flow := gowid.RenderFlow{}
 	pilew := hzsqlcl.NewResizeablePile([]gowid.IContainerWidget{
