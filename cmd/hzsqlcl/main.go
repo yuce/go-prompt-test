@@ -12,6 +12,9 @@ import (
 	"github.com/gcla/gowid/widgets/text"
 	"github.com/gcla/gowid/widgets/vpadding"
 	"github.com/gdamore/tcell"
+	hz "github.com/hazelcast/hazelcast-go-client/v4/hazelcast"
+	"github.com/hazelcast/hazelcast-go-client/v4/hazelcast/sql"
+	"log"
 	"time"
 )
 
@@ -57,13 +60,53 @@ func NewEditBox(resultWidget *text.Widget) *EditBox {
 	}
 }
 
+func handleSqlResult(result sql.Result) string {
+	var res string
+	rows := result.Rows()
+
+	counter := 0
+
+	for rows.HasNext() {
+		row := rows.Next()
+		rowMetadata := row.Metadata()
+		columnCount := rowMetadata.ColumnCount()
+		// print column names once
+		if counter == 0 {
+			for i := 0; i < columnCount; i++ {
+				fmt.Print(" | " + rowMetadata.Column(i).Name())
+			}
+			fmt.Println()
+		}
+		counter++
+		for i := 0; i < columnCount; i++ {
+			fmt.Print("Value: ")
+			// column := rowMetadata.Column(i)
+			// column.Type()
+			fmt.Print(row.ValueAtIndex(i))
+			fmt.Print(" ")
+
+		}
+		fmt.Println()
+	}
+	return res
+}
+
 func (w *EditBox) UserInput(ev interface{}, size gowid.IRenderSize, focus gowid.Selector, app gowid.IApp) bool {
 	res := true
 	if evk, ok := ev.(*tcell.EventKey); ok {
 		switch evk.Key() {
 		case tcell.KeyEnter:
 			t := w.IWidget.(*edit.Widget).Text()
-			w.resultWidget.SetContent(app, createHintMessage(t))
+			result, err := client.ExecuteSQL(t)
+			var responseMessage string
+			if err != nil {
+				responseMessage = fmt.Sprintf("could not execute sql %s", err)
+				w.resultWidget.SetContent(app, createHintMessage(responseMessage))
+			} else {
+				responseMessage = handleSqlResult(result)
+				w.resultWidget.SetContent(app, createErrorMessage(responseMessage))
+			}
+
 			//w.IWidget = text.New(fmt.Sprintf("Executed SQL: %s.", t))
 			w.IWidget.(*edit.Widget).SetText("", app)
 		default:
@@ -84,7 +127,37 @@ func NewResizeablePile(widgets []gowid.IContainerWidget) *ResizeablePileWidget {
 	return res
 }
 
+// for testing
+func populateMap(client *hz.Client) {
+	someMap, _ := client.GetMap("someMap")
+
+	_ = someMap.Clear()
+
+	_, _ = someMap.Put(1, "hi")
+	_, _ = someMap.Put(2, "hi2")
+	_, _ = someMap.Put(3, "hi3")
+	_, _ = someMap.Put(4, "hi4")
+	_, _ = someMap.Put(5, "hi5")
+	_, _ = someMap.Put(6, "hi6")
+}
+
+var client *hz.Client
+
 func main() {
+	// connect the client
+	cb := hz.NewClientConfigBuilder()
+	cb.Cluster().SetName("jet")
+	config, err := cb.Config()
+	if err != nil {
+		log.Fatal(err)
+	}
+	client, err = hz.StartNewClientWithConfig(config)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	populateMap(client)
+
 	palette := gowid.Palette{
 		"banner": gowid.MakePaletteEntry(gowid.ColorBlack, gowid.NewUrwidColor("light gray")),
 		"error":  gowid.MakePaletteEntry(gowid.ColorWhite, gowid.ColorRed),
