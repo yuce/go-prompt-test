@@ -55,6 +55,24 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		if enteredText == "w;" {
 			createMappingWizard.Open(viewHolder, gowid.RenderWithRatio{R: 0.5}, app)
 			return
+		} else if strings.Trim(strings.TrimRight(enteredText, ";"), " \n\t") == "help" {
+			currentContent := resultWidget.(*text.Widget).Content()
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "> ", Style: nil})
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: enteredText, Style: gowid.MakePaletteRef("query")})
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "\n", Style: nil})
+
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "Welcome! Some available commands are: \n", Style: gowid.MakePaletteRef("resultLine")})
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "SELECT: ", Style: gowid.MakePaletteRef("query")})
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "You can select from a map or a mapping \n", Style: gowid.MakePaletteRef("resultLine")})
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "INSERT INTO: ", Style: gowid.MakePaletteRef("query")})
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "You can insert a data into a map or a mapping \n", Style: gowid.MakePaletteRef("resultLine")})
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "CREATE MAPPING: ", Style: gowid.MakePaletteRef("query")})
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "You can create a mapping \n", Style: gowid.MakePaletteRef("resultLine")})
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "CREATE JOB: ", Style: gowid.MakePaletteRef("query")})
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "You can create a job \n", Style: gowid.MakePaletteRef("resultLine")})
+
+			resultWidget.(*text.Widget).SetContent(app, currentContent)
+			return
 		}
 
 		trimmedEnteredText := strings.TrimSuffix(enteredText, ";")

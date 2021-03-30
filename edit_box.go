@@ -15,7 +15,7 @@ type EditBox struct {
 	gowid.IWidget
 	resultWidget *text.Widget
 	handler      EditBoxHandler
-	history  	 *ring.Ring
+	history      *ring.Ring
 	lastHistory  *ring.Ring
 }
 
@@ -29,7 +29,7 @@ func NewEditBox(resultWidget *text.Widget, handler EditBoxHandler) *EditBox {
 		IWidget:      editWidget,
 		resultWidget: resultWidget,
 		handler:      handler,
-		history: 	  commandHistory,
+		history:      commandHistory,
 		lastHistory:  commandHistory,
 	}
 }
@@ -121,11 +121,5 @@ func (w *EditBox) autoComplete(t string, app gowid.IApp) {
 	} else if strings.HasPrefix(t, "C") {
 		w.IWidget.(*edit.Widget).SetText("CREATE MAPPING", app)
 		w.IWidget.(*edit.Widget).SetCursorPos(len(w.IWidget.(*edit.Widget).Text()), app)
-	} else if t == "" {
-		helpText := "Welcome! Some available commands are: \n"
-		helpText += "SELECT: You can select from a map or a mapping\n"
-		helpText += "INSERT INTO: You can insert a data into a map or a mapping\n"
-		helpText += "CREATE MAPPING: You can create a mapping\n"
-		w.resultWidget.SetText(helpText, app)
 	}
 }
