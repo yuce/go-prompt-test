@@ -191,17 +191,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	//go func() {
-	//	for {
-	//		time.Sleep(2 * time.Second)
-	//		statusBar.SetHint(app, "create mapping MAPPING_NAME MAPPINT TYPE")
-	//		time.Sleep(2 * time.Second)
-	//		statusBar.SetError(app, "ERROR: connection to the server was lost")
-	//		time.Sleep(2 * time.Second)
-	//		statusBar.Clear(app)
-	//	}
-	//}()
 	app.SimpleMainLoop()
 }
 

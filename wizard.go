@@ -5,6 +5,8 @@ import (
 	"hzsqlcl/components"
 	"hzsqlcl/form"
 
+	"github.com/gcla/gowid/widgets/grid"
+
 	"github.com/gcla/gowid/widgets/holder"
 
 	"github.com/gcla/gowid"
@@ -24,6 +26,7 @@ type WizardPage interface {
 	gowid.IWidget
 	PageName() string
 	UpdateState(state map[string]interface{})
+	ExtraButtons() []*button.Widget
 }
 
 type WizardState map[string]interface{}
@@ -68,15 +71,14 @@ func (wiz *Wizard) close(app gowid.IApp) {
 
 func (wiz *Wizard) buttonBarForPage() gowid.IWidget {
 	isLastPage := wiz.currentPage == len(wiz.pages)-1
-	nextBtn := button.New(text.New("Next"))
-	nextBtn.OnClick(gowid.WidgetCallback{"cbNext", func(app gowid.IApp, w gowid.IWidget) {
+	btnNext := button.New(text.New("Next"))
+	btnNext.OnClick(gowid.WidgetCallback{"cbNext", func(app gowid.IApp, w gowid.IWidget) {
 		currentPage := wiz.pages[wiz.currentPage]
 		currentPage.UpdateState(wiz.state)
 		wiz.gotoNextPage(app)
 	}})
-
-	okBtn := button.New(text.New("OK"))
-	okBtn.OnClick(gowid.WidgetCallback{"cbOK", func(app gowid.IApp, w gowid.IWidget) {
+	btnOk := button.New(text.New("OK"))
+	btnOk.OnClick(gowid.WidgetCallback{"cbOK", func(app gowid.IApp, w gowid.IWidget) {
 		currentPage := wiz.pages[wiz.currentPage]
 		currentPage.UpdateState(wiz.state)
 		if wiz.handler != nil {
@@ -84,16 +86,21 @@ func (wiz *Wizard) buttonBarForPage() gowid.IWidget {
 		}
 		wiz.close(app)
 	}})
-	cancelBtn := button.New(text.New("Cancel"))
-	cancelBtn.OnClick(gowid.WidgetCallback{"cbCancel", func(app gowid.IApp, w gowid.IWidget) {
+	btnCancel := button.New(text.New("Cancel"))
+	btnCancel.OnClick(gowid.WidgetCallback{"cbCancel", func(app gowid.IApp, w gowid.IWidget) {
 		wiz.close(app)
 	}})
 
-	buttons := []interface{}{cancelBtn}
+	buttons := []interface{}{}
+	page := wiz.pages[wiz.currentPage]
+	for _, btn := range page.ExtraButtons() {
+		buttons = append(buttons, btn)
+	}
+	buttons = append(buttons, btnCancel)
 	if isLastPage {
-		buttons = append(buttons, okBtn)
+		buttons = append(buttons, btnOk)
 	} else {
-		buttons = append(buttons, nextBtn)
+		buttons = append(buttons, btnNext)
 	}
 	return columns.NewFixed(buttons...)
 }
@@ -160,6 +167,10 @@ func (p NameAndTypePage) UpdateState(state map[string]interface{}) {
 	state[MappingType] = p.mappingType
 }
 
+func (p NameAndTypePage) ExtraButtons() []*button.Widget {
+	return nil
+}
+
 type FieldsPage struct {
 	gowid.IWidget
 	fields []form.FieldFormState
@@ -167,16 +178,7 @@ type FieldsPage struct {
 
 func NewFieldsPage() *FieldsPage {
 	widget := &FieldsPage{}
-	addFieldBtn := button.New(text.New("Add Field"))
-	viewHolder := holder.New(addFieldBtn)
-	fieldTypes := []string{"VARCHAR", "INT"}
-	addFieldBtn.OnClick(gowid.WidgetCallback{"cbAddField", func(app gowid.IApp, w gowid.IWidget) {
-		frm := form.NewFormContainer("Add Field", form.NewFieldForm(fieldTypes...), func(app gowid.IApp, state interface{}) {
-			widget.fields = append(widget.fields, state.(form.FieldFormState))
-		})
-		frm.Open(app.SubWidget().(*holder.Widget), gowid.RenderWithRatio{R: 0.5}, app)
-	}})
-	widget.IWidget = viewHolder
+	widget.IWidget = holder.New(text.New("Click Add Field button to add fields."))
 	return widget
 }
 
@@ -188,4 +190,26 @@ func (p FieldsPage) UpdateState(state map[string]interface{}) {
 	for _, field := range p.fields {
 		state[fmt.Sprintf("Field_%s", field.FieldName)] = field.FieldType
 	}
+}
+
+func (p *FieldsPage) ExtraButtons() []*button.Widget {
+	fieldTypes := []string{"VARCHAR", "INT"}
+	addFieldBtn := button.New(text.New("Add Field"))
+	addFieldBtn.OnClick(gowid.WidgetCallback{"cbAddField", func(app gowid.IApp, w gowid.IWidget) {
+		frm := form.NewFormContainer("Add Field", form.NewFieldForm(fieldTypes...), nil, func(app gowid.IApp, state interface{}) {
+			field := state.(form.FieldFormState)
+			p.fields = append(p.fields, field)
+			hl := p.IWidget.(*holder.Widget)
+			widgets := []gowid.IWidget{}
+			for _, f := range p.fields {
+				txtFieldName := text.New(f.FieldName)
+				txtFieldType := text.New(f.FieldType)
+				widgets = append(widgets, txtFieldName, txtFieldType)
+			}
+			grd := grid.New(widgets, 20, 3, 1, gowid.HAlignMiddle{})
+			hl.SetSubWidget(grd, app)
+		})
+		frm.Open(app.SubWidget().(*holder.Widget), gowid.RenderWithRatio{R: 0.5}, app)
+	}})
+	return []*button.Widget{addFieldBtn}
 }

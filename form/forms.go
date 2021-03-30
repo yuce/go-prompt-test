@@ -25,16 +25,18 @@ type FormContainerHandler func(app gowid.IApp, state interface{})
 type FormContainer struct {
 	widget         FormFragment
 	title          string
+	extraButtons   []*button.Widget
 	handler        FormContainerHandler
 	savedContainer gowid.ISettableComposite
 	savedSubWidget gowid.IWidget
 }
 
-func NewFormContainer(title string, widget FormFragment, handler FormContainerHandler) *FormContainer {
+func NewFormContainer(title string, widget FormFragment, extraButtons []*button.Widget, handler FormContainerHandler) *FormContainer {
 	return &FormContainer{
-		widget:  widget,
-		title:   title,
-		handler: handler,
+		widget:       widget,
+		title:        title,
+		extraButtons: extraButtons,
+		handler:      handler,
 	}
 }
 
@@ -63,7 +65,12 @@ func (f *FormContainer) buttonBar() gowid.IWidget {
 	cancelBtn.OnClick(gowid.WidgetCallback{"cbCancel", func(app gowid.IApp, w gowid.IWidget) {
 		f.close(app)
 	}})
-	return columns.NewFixed(cancelBtn, okBtn)
+	buttons := []interface{}{}
+	for _, btn := range f.extraButtons {
+		buttons = append(buttons, btn)
+	}
+	buttons = append(buttons, cancelBtn, okBtn)
+	return columns.NewFixed(buttons...)
 }
 
 func (f *FormContainer) frame() gowid.IWidget {
