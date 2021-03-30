@@ -16,7 +16,6 @@ import (
 	"github.com/hazelcast/hazelcast-go-client/v4/hazelcast/property"
 	"github.com/hazelcast/hazelcast-go-client/v4/hazelcast/sql"
 	"log"
-	"time"
 )
 
 var txt *text.Widget
@@ -82,7 +81,7 @@ func handleSqlResult(result sql.Result) string {
 		for i := 0; i < columnCount; i++ {
 			// column := rowMetadata.Column(i)
 			// column.Type()
-			res += fmt.Sprintf("   %v",row.ValueAtIndex(i))
+			res += fmt.Sprintf("   %v", row.ValueAtIndex(i))
 			res += "   "
 
 		}
@@ -161,8 +160,8 @@ func main() {
 	populateMap(client)
 
 	palette := gowid.Palette{
-		"banner": gowid.MakePaletteEntry(gowid.ColorBlack, gowid.NewUrwidColor("light gray")),
-		"error":  gowid.MakePaletteEntry(gowid.ColorWhite, gowid.ColorRed),
+		"banner": gowid.MakePaletteEntry(gowid.NewUrwidColor("light gray"), gowid.ColorDefault),
+		"error":  gowid.MakePaletteEntry(gowid.ColorRed, gowid.ColorDefault),
 		"line":   gowid.MakeStyledPaletteEntry(gowid.NewUrwidColor("black"), gowid.NewUrwidColor("light gray"), gowid.StyleBold),
 	}
 	hline := styled.New(fill.New('-'), gowid.MakePaletteRef("line"))
@@ -215,16 +214,18 @@ func main() {
 		Palette: palette,
 	})
 
-	go func() {
-		time.Sleep(2 * time.Second)
-		hintMsg := createHintMessage("create mapping MAPPING_NAME MAPPINT TYPE")
-		txt.SetContent(app, hintMsg)
-		app.Redraw()
-		time.Sleep(2 * time.Second)
-		errorMsg := createErrorMessage("ERROR: connection to the server was lost")
-		txt.SetContent(app, errorMsg)
-		app.Redraw()
-	}()
+	/*
+		go func() {
+			time.Sleep(2 * time.Second)
+			hintMsg := createHintMessage("create mapping MAPPING_NAME MAPPINT TYPE")
+			txt.SetContent(app, hintMsg)
+			app.Redraw()
+			time.Sleep(2 * time.Second)
+			errorMsg := createErrorMessage("ERROR: connection to the server was lost")
+			txt.SetContent(app, errorMsg)
+			app.Redraw()
+		}()
+	*/
 
 	app.SimpleMainLoop()
 }
