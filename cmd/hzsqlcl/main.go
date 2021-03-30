@@ -101,10 +101,10 @@ func (w *EditBox) UserInput(ev interface{}, size gowid.IRenderSize, focus gowid.
 			var responseMessage string
 			if err != nil {
 				responseMessage = fmt.Sprintf("could not execute sql %s", err)
-				w.resultWidget.SetContent(app, createHintMessage(responseMessage))
+				w.resultWidget.SetContent(app, createErrorMessage(responseMessage))
 			} else {
 				responseMessage = handleSqlResult(result)
-				w.resultWidget.SetContent(app, createErrorMessage(responseMessage))
+				w.resultWidget.SetContent(app, createHintMessage(responseMessage))
 			}
 
 			//w.IWidget = text.New(fmt.Sprintf("Executed SQL: %s.", t))
