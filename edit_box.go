@@ -16,6 +16,7 @@ type EditBox struct {
 	resultWidget *text.Widget
 	handler      EditBoxHandler
 	history  	 *ring.Ring
+	lastHistory  *ring.Ring
 }
 
 type EditBoxHandler func(app gowid.IApp, widget gowid.IWidget, enteredText string)
@@ -29,6 +30,7 @@ func NewEditBox(resultWidget *text.Widget, handler EditBoxHandler) *EditBox {
 		resultWidget: resultWidget,
 		handler:      handler,
 		history: 	  commandHistory,
+		lastHistory:  commandHistory,
 	}
 }
 
@@ -42,8 +44,9 @@ func (w *EditBox) UserInput(ev interface{}, size gowid.IRenderSize, focus gowid.
 			if strings.HasSuffix(t, ";") {
 				w.IWidget.(*edit.Widget).SetText("", app)
 				if w.handler != nil {
-					w.history = w.history.Next()
-					w.history.Value = t
+					w.lastHistory = w.lastHistory.Next()
+					w.lastHistory.Value = t
+					w.history = w.lastHistory
 
 					w.handler(app, w.resultWidget, t)
 				}
