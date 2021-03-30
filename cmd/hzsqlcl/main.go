@@ -30,6 +30,7 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 	pages := []hzsqlcl.WizardPage{
 		hzsqlcl.NewNameAndTypePage(),
 		hzsqlcl.NewFieldsPage(),
+		hzsqlcl.NewOptionsPage(),
 	}
 
 	palette := gowid.Palette{

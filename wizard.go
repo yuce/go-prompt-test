@@ -213,3 +213,45 @@ func (p *FieldsPage) ExtraButtons() []*button.Widget {
 	}})
 	return []*button.Widget{addFieldBtn}
 }
+
+type OptionsPage struct {
+	gowid.IWidget
+	options []form.OptionFormState
+}
+
+func NewOptionsPage() *OptionsPage {
+	widget := &OptionsPage{}
+	widget.IWidget = holder.New(text.New("Click Add Option button to add fields."))
+	return widget
+}
+
+func (p OptionsPage) PageName() string {
+	return "Options"
+}
+
+func (p OptionsPage) UpdateState(state map[string]interface{}) {
+	for _, option := range p.options {
+		state[fmt.Sprintf("Option_%s", option.OptionName)] = option.OptionValue
+	}
+}
+
+func (p *OptionsPage) ExtraButtons() []*button.Widget {
+	addOptionBtn := button.New(text.New("Add Option"))
+	addOptionBtn.OnClick(gowid.WidgetCallback{"cbAddOption", func(app gowid.IApp, w gowid.IWidget) {
+		frm := form.NewFormContainer("Add Option", form.NewOptionForm(), nil, func(app gowid.IApp, state interface{}) {
+			option := state.(form.OptionFormState)
+			p.options = append(p.options, option)
+			hl := p.IWidget.(*holder.Widget)
+			widgets := []gowid.IWidget{}
+			for _, f := range p.options {
+				txtOptionName := text.New(f.OptionName)
+				txtOptionType := text.New(f.OptionValue)
+				widgets = append(widgets, txtOptionName, txtOptionType)
+			}
+			grd := grid.New(widgets, 20, 3, 1, gowid.HAlignMiddle{})
+			hl.SetSubWidget(grd, app)
+		})
+		frm.Open(app.SubWidget().(*holder.Widget), gowid.RenderWithRatio{R: 0.5}, app)
+	}})
+	return []*button.Widget{addOptionBtn}
+}

@@ -114,3 +114,25 @@ func NewFieldForm(items ...string) *FieldForm {
 func (f FieldForm) State() interface{} {
 	return f.fieldFormState
 }
+
+type OptionFormState struct {
+	OptionName  string
+	OptionValue string
+}
+
+type OptionForm struct {
+	gowid.IWidget
+	optionFormState OptionFormState
+}
+
+func NewOptionForm() *OptionForm {
+	widget := &OptionForm{}
+	optionNameWidget := NewLabeledEdit(&widget.optionFormState.OptionName, "Option Name:")
+	optionValueWidget := NewLabeledEdit(&widget.optionFormState.OptionValue, "Option Value:")
+	widget.IWidget = pile.NewFixed(optionNameWidget, optionValueWidget)
+	return widget
+}
+
+func (f OptionForm) State() interface{} {
+	return f.optionFormState
+}
