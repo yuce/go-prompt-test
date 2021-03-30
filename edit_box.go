@@ -10,13 +10,17 @@ import (
 type EditBox struct {
 	gowid.IWidget
 	resultWidget *text.Widget
+	handler      EditBoxHandler
 }
 
-func NewEditBox(resultWidget *text.Widget) *EditBox {
+type EditBoxHandler func(app gowid.IApp, widget gowid.IWidget, enteredText string)
+
+func NewEditBox(resultWidget *text.Widget, handler EditBoxHandler) *EditBox {
 	editWidget := edit.New(edit.Options{Caption: "SQL> "})
 	return &EditBox{
 		IWidget:      editWidget,
 		resultWidget: resultWidget,
+		handler:      handler,
 	}
 }
 
@@ -27,7 +31,10 @@ func (w *EditBox) UserInput(ev interface{}, size gowid.IRenderSize, focus gowid.
 		case tcell.KeyEnter:
 			t := w.IWidget.(*edit.Widget).Text()
 			w.IWidget.(*edit.Widget).SetText("", app)
-			w.resultWidget.SetContent(app, CreateHintMessage(t))
+			if w.handler != nil {
+				w.handler(app, w.resultWidget, t)
+			}
+			//w.resultWidget.SetContent(app, CreateHintMessage(t))
 
 			/*
 				result, err := client.ExecuteSQL(t)

@@ -29,7 +29,9 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 			Align: gowid.HAlignLeft{},
 		},
 	)
-	editBox := hzsqlcl.NewEditBox(resultWidget)
+	editBox := hzsqlcl.NewEditBox(resultWidget, func(app gowid.IApp, resultWidget gowid.IWidget, enteredText string) {
+		resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateHintMessage(enteredText))
+	})
 	flow := gowid.RenderFlow{}
 	pilew := hzsqlcl.NewResizeablePile([]gowid.IContainerWidget{
 		&gowid.ContainerWidget{IWidget: resultWidget, D: gowid.RenderWithWeight{2}},
