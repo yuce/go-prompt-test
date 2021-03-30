@@ -12,39 +12,18 @@ import (
 	"github.com/gcla/gowid/widgets/vpadding"
 	hz "github.com/hazelcast/hazelcast-go-client/v4/hazelcast"
 	"github.com/hazelcast/hazelcast-go-client/v4/hazelcast/sql"
+	log "github.com/sirupsen/logrus"
 	"hzsqlcl"
 	"time"
 )
 
-func main() {
-	// connect the client
-	/*
-		cb := hz.NewClientConfigBuilder()
-		cb.Cluster().SetName("jet")
-		config, err := cb.Config()
-		if err != nil {
-			log.Fatal(err)
-		}
-		client, err = hz.StartNewClientWithConfig(config)
-		if err != nil {
-			log.Fatal(err)
-		}
-	*/
-
-	//populateMap(client)
-
+func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 	palette := gowid.Palette{
 		"hint":  gowid.MakePaletteEntry(gowid.ColorBlack, gowid.NewUrwidColor("light gray")),
 		"error": gowid.MakePaletteEntry(gowid.ColorWhite, gowid.ColorRed),
 		"line":  gowid.MakeStyledPaletteEntry(gowid.NewUrwidColor("black"), gowid.NewUrwidColor("light gray"), gowid.StyleBold),
 	}
 	hline := styled.New(fill.New('-'), gowid.MakePaletteRef("line"))
-	txt := text.NewFromContentExt(hzsqlcl.CreateHintMessage("Hit tab to auto-complete"),
-		text.Options{
-			Align: gowid.HAlignLeft{},
-		},
-	)
-	statusBar := styled.New(txt, gowid.MakePaletteRef("hint"))
 	resultWidget := text.NewFromContentExt(hzsqlcl.CreateHintMessage(""),
 		text.Options{
 			Align: gowid.HAlignLeft{},
@@ -63,32 +42,49 @@ func main() {
 			gowid.VAlignBottom{}, flow,
 		), flow},
 	})
-	tw := text.New(" localhost:5701 ")
-	//twi := styled.New(tw, gowid.MakePaletteRef("invred"))
-	twp := holder.New(tw)
 	view := framed.New(pilew, framed.Options{
 		Frame:       framed.UnicodeFrame,
-		TitleWidget: twp,
+		TitleWidget: holder.New(text.New(" localhost:5701 ")),
 	})
-	app, _ := gowid.NewApp(gowid.AppArgs{
+	return gowid.NewApp(gowid.AppArgs{
 		View:    view,
 		Palette: palette,
 	})
+}
+
+func main() {
+	// connect the client
+	/*
+		cb := hz.NewClientConfigBuilder()
+		cb.Cluster().SetName("jet")
+		config, err := cb.Config()
+		if err != nil {
+			log.Fatal(err)
+		}
+		client, err = hz.StartNewClientWithConfig(config)
+		if err != nil {
+			log.Fatal(err)
+		}
+	*/
+
+	//populateMap(client)
+
+	statusBar := hzsqlcl.NewStatusBar()
+	app, err := createApp(statusBar)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	go func() {
 		for {
 			time.Sleep(2 * time.Second)
-			txt.SetContent(app, hzsqlcl.CreateHintMessage("create mapping MAPPING_NAME MAPPINT TYPE"))
-			app.Redraw()
+			statusBar.SetHint(app, "create mapping MAPPING_NAME MAPPINT TYPE")
 			time.Sleep(2 * time.Second)
-			txt.SetContent(app, hzsqlcl.CreateErrorMessage("ERROR: connection to the server was lost"))
-			app.Redraw()
+			statusBar.SetError(app, "ERROR: connection to the server was lost")
 			time.Sleep(2 * time.Second)
-			txt.SetContent(app, hzsqlcl.CreateHintMessage(""))
-			app.Redraw()
+			statusBar.Clear(app)
 		}
 	}()
-
 	app.SimpleMainLoop()
 }
 
