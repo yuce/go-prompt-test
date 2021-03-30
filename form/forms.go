@@ -20,13 +20,6 @@ import (
 	"github.com/gcla/gowid/widgets/vpadding"
 )
 
-var (
-	DefaultBackground = gowid.NewUrwidColor("white")
-	DefaultButton     = gowid.NewUrwidColor("dark blue")
-	DefaultButtonText = gowid.NewUrwidColor("yellow")
-	DefaultText       = gowid.NewUrwidColor("black")
-)
-
 type FormFragment interface {
 	gowid.IWidget
 	State() interface{}
@@ -86,9 +79,8 @@ func (f *FormContainer) buttonBar() gowid.IWidget {
 }
 
 func (f *FormContainer) frame() gowid.IWidget {
-	//buttonStyle := gowid.MakePaletteEntry(DefaultButtonText, DefaultButton)
-	borderStyle := gowid.MakePaletteEntry(DefaultButton, DefaultBackground)
-	backgroundStyle := gowid.MakePaletteEntry(DefaultText, DefaultBackground)
+	borderStyle := gowid.MakePaletteRef("border")
+	backgroundStyle := gowid.MakePaletteRef("background")
 	flow := gowid.RenderFlow{}
 	hline := styled.New(fill.New('-'), borderStyle)
 	pilew := components.NewResizeablePile([]gowid.IContainerWidget{

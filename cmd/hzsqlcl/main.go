@@ -23,6 +23,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var (
+	DefaultBackground = gowid.NewUrwidColor("white")
+	DefaultButton     = gowid.NewUrwidColor("dark blue")
+	DefaultButtonText = gowid.NewUrwidColor("yellow")
+	DefaultText       = gowid.NewUrwidColor("black")
+)
+
 func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 	var viewHolder *holder.Widget
 	var editBox *hzsqlcl.EditBox
@@ -41,6 +48,9 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		"query":      gowid.MakePaletteEntry(gowid.ColorLightBlue, gowid.ColorDefault),
 		"keyword":    gowid.MakePaletteEntry(gowid.ColorBlue, gowid.ColorDefault),
 		"form":       gowid.MakePaletteEntry(gowid.ColorWhite, gowid.ColorBlack),
+		"background": gowid.MakePaletteEntry(DefaultText, DefaultBackground),
+		"border":     gowid.MakePaletteEntry(DefaultButton, DefaultBackground),
+		"button":     gowid.MakePaletteEntry(DefaultButtonText, DefaultButton),
 	}
 	hline := styled.New(fill.New('-'), gowid.MakePaletteRef("line"))
 	resultWidget := text.NewFromContentExt(hzsqlcl.CreateHintMessage(""),

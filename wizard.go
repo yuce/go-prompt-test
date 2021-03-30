@@ -94,7 +94,7 @@ func (wiz *Wizard) buttonBarForPage() gowid.IWidget {
 		wiz.close(app)
 	}})
 
-	buttons := []interface{}{}
+	buttons := []*button.Widget{}
 	page := wiz.pages[wiz.currentPage]
 	for _, btn := range page.ExtraButtons() {
 		buttons = append(buttons, btn)
@@ -105,12 +105,16 @@ func (wiz *Wizard) buttonBarForPage() gowid.IWidget {
 	} else {
 		buttons = append(buttons, btnNext)
 	}
-	return columns.NewFixed(buttons...)
+	colsW := []gowid.IContainerWidget{}
+	for _, btn := range buttons {
+		colsW = append(colsW, components.MakeStylishButton(btn))
+	}
+	return columns.New(colsW)
 }
 
 func (wiz *Wizard) widgetForCurrentPage() gowid.IWidget {
-	borderStyle := gowid.MakePaletteEntry(form.DefaultButton, form.DefaultBackground)
-	backgroundStyle := gowid.MakePaletteEntry(form.DefaultText, form.DefaultBackground)
+	borderStyle := gowid.MakePaletteRef("border")
+	backgroundStyle := gowid.MakePaletteRef("background")
 
 	page := wiz.pages[wiz.currentPage]
 	flow := gowid.RenderFlow{}
