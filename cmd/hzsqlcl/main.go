@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"hzsqlcl"
+	"strings"
+
 	"github.com/gcla/gowid"
 	"github.com/gcla/gowid/widgets/fill"
 	"github.com/gcla/gowid/widgets/framed"
@@ -14,8 +17,6 @@ import (
 	"github.com/hazelcast/hazelcast-go-client/v4/hazelcast/property"
 	"github.com/hazelcast/hazelcast-go-client/v4/hazelcast/sql"
 	log "github.com/sirupsen/logrus"
-	"hzsqlcl"
-	"strings"
 )
 
 func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
@@ -55,10 +56,10 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 
 		if err != nil {
 			errorMessage := hzsqlcl.CreateErrorMessage(err.Error())
-			resultWidget.(*text.Widget).SetText(currentText + errorMessage.String() + "\n", app)
+			resultWidget.(*text.Widget).SetText(currentText+errorMessage.String()+"\n", app)
 		} else {
 			result := hzsqlcl.CreateMessage(handleSqlResult(res), "resultLine")
-			resultWidget.(*text.Widget).SetText(currentText + result.String() + "\n", app)
+			resultWidget.(*text.Widget).SetText(currentText+result.String()+"\n", app)
 		}
 	})
 	flow := gowid.RenderFlow{}
