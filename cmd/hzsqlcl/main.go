@@ -31,14 +31,16 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 			Align: gowid.HAlignLeft{},
 		},
 	)
-	editBox := hzsqlcl.NewEditBox(resultWidget, func(app gowid.IApp, resultWidget gowid.IWidget, enteredText string) {
-		res, err := client.ExecuteSQL(enteredText)
-		if err != nil {
-			resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateErrorMessage(err.Error()))
-		} else {
-			resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateMessage(handleSqlResult(res), "resultLine"))
-		}
-	})
+	editBox := hzsqlcl.NewEditBox(resultWidget,
+		func(app gowid.IApp, resultWidget gowid.IWidget, enteredText string) {
+			res, err := client.ExecuteSQL(enteredText)
+			if err != nil {
+				resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateErrorMessage(err.Error()))
+			} else {
+				resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateMessage(handleSqlResult(res), "resultLine"))
+			}
+		},
+	)
 	flow := gowid.RenderFlow{}
 	pilew := hzsqlcl.NewResizeablePile([]gowid.IContainerWidget{
 		&gowid.ContainerWidget{IWidget: resultWidget, D: gowid.RenderWithWeight{2}},
