@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"hzsqlcl"
+	"time"
+
 	"github.com/gcla/gowid"
 	"github.com/gcla/gowid/widgets/fill"
 	"github.com/gcla/gowid/widgets/framed"
@@ -13,15 +16,21 @@ import (
 	hz "github.com/hazelcast/hazelcast-go-client/v4/hazelcast"
 	"github.com/hazelcast/hazelcast-go-client/v4/hazelcast/sql"
 	log "github.com/sirupsen/logrus"
-	"hzsqlcl"
-	"time"
 )
 
 func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
+	var viewHolder *holder.Widget
+
+	pages := []hzsqlcl.WizardPage{
+		hzsqlcl.NewNameAndTypePage(),
+		hzsqlcl.NewPageWidget2(),
+	}
+
+	createMappingWizard := hzsqlcl.NewWizard(pages)
 	palette := gowid.Palette{
-		"hint":  gowid.MakePaletteEntry(gowid.ColorBlack, gowid.NewUrwidColor("light gray")),
-		"error": gowid.MakePaletteEntry(gowid.ColorWhite, gowid.ColorRed),
-		"line":  gowid.MakeStyledPaletteEntry(gowid.NewUrwidColor("black"), gowid.NewUrwidColor("light gray"), gowid.StyleBold),
+		"hint":       gowid.MakePaletteEntry(gowid.ColorBlack, gowid.NewUrwidColor("light gray")),
+		"error":      gowid.MakePaletteEntry(gowid.ColorWhite, gowid.ColorRed),
+		"line":       gowid.MakeStyledPaletteEntry(gowid.NewUrwidColor("black"), gowid.NewUrwidColor("light gray"), gowid.StyleBold),
 		"resultLine": gowid.MakePaletteEntry(gowid.ColorWhite, gowid.ColorBlack),
 	}
 	hline := styled.New(fill.New('-'), gowid.MakePaletteRef("line"))
@@ -31,7 +40,8 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		},
 	)
 	editBox := hzsqlcl.NewEditBox(resultWidget, func(app gowid.IApp, resultWidget gowid.IWidget, enteredText string) {
-		resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateResultLineMessage(enteredText))
+		//resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateResultLineMessage(enteredText))
+		createMappingWizard.Open(viewHolder, gowid.RenderWithRatio{R: 0.5}, app)
 	})
 	flow := gowid.RenderFlow{}
 	pilew := hzsqlcl.NewResizeablePile([]gowid.IContainerWidget{
@@ -49,8 +59,9 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		Frame:       framed.UnicodeFrame,
 		TitleWidget: holder.New(text.New(" localhost:5701 ")),
 	})
+	viewHolder = holder.New(view)
 	return gowid.NewApp(gowid.AppArgs{
-		View:    view,
+		View:    viewHolder,
 		Palette: palette,
 	})
 }
