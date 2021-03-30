@@ -1,6 +1,8 @@
 package hzsqlcl
 
 import (
+	"container/ring"
+	"fmt"
 	"strings"
 
 	"github.com/gcla/gowid"
@@ -13,16 +15,20 @@ type EditBox struct {
 	gowid.IWidget
 	resultWidget *text.Widget
 	handler      EditBoxHandler
+	history  	 *ring.Ring
 }
 
 type EditBoxHandler func(app gowid.IApp, widget gowid.IWidget, enteredText string)
 
 func NewEditBox(resultWidget *text.Widget, handler EditBoxHandler) *EditBox {
 	editWidget := edit.New(edit.Options{Caption: "SQL> "})
+	commandHistory := ring.New(30)
+	commandHistory.Value = "<end>"
 	return &EditBox{
 		IWidget:      editWidget,
 		resultWidget: resultWidget,
 		handler:      handler,
+		history: 	  commandHistory,
 	}
 }
 
@@ -36,6 +42,9 @@ func (w *EditBox) UserInput(ev interface{}, size gowid.IRenderSize, focus gowid.
 			if strings.HasSuffix(t, ";") {
 				w.IWidget.(*edit.Widget).SetText("", app)
 				if w.handler != nil {
+					w.history = w.history.Next()
+					w.history.Value = t
+
 					w.handler(app, w.resultWidget, t)
 				}
 			} else {
@@ -43,6 +52,29 @@ func (w *EditBox) UserInput(ev interface{}, size gowid.IRenderSize, focus gowid.
 				inputWidget.SetText(t+"\n", app)
 				inputWidget.SetCursorPos(inputWidget.CursorPos()+1, app)
 			}
+
+		case tcell.KeyUp:
+			command := fmt.Sprint(w.history.Value)
+			inputWidget := w.IWidget.(*edit.Widget)
+			inputWidget.SetText(command, app)
+			inputWidget.SetCursorPos(len(command), app)
+			if fmt.Sprint(w.history.Value) != "<end>" {
+				w.history = w.history.Prev()
+			}
+
+		case tcell.KeyDown:
+			w.history = w.history.Next()
+			command := fmt.Sprint(w.history.Value)
+			if command == "<nil>" {
+				command = ""
+				w.history = w.history.Prev()
+			}
+
+			inputWidget := w.IWidget.(*edit.Widget)
+			inputWidget.SetText(command, app)
+			inputWidget.SetCursorPos(len(command), app)
+
+
 		case tcell.KeyTAB:
 			t := w.IWidget.(*edit.Widget).Text()
 
