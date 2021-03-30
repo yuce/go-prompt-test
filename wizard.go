@@ -2,6 +2,7 @@ package hzsqlcl
 
 import (
 	"fmt"
+	"hzsqlcl/form"
 
 	"github.com/gcla/gowid/widgets/holder"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/gcla/gowid/widgets/grid"
 	"github.com/gcla/gowid/widgets/overlay"
 	"github.com/gcla/gowid/widgets/pile"
-	"github.com/gcla/gowid/widgets/radio"
 	"github.com/gcla/gowid/widgets/styled"
 	"github.com/gcla/gowid/widgets/text"
 	"github.com/gcla/gowid/widgets/vpadding"
@@ -126,8 +126,10 @@ func (wiz *Wizard) gotoNextPage(app gowid.IApp) {
 }
 
 const (
-	MappingName = "mappingName"
-	MappingType = "mappingType"
+	MappingName      = "mappingName"
+	MappingType      = "mappingType"
+	MappingTypeKafka = "Kafka"
+	MappingTypeFile  = "File"
 )
 
 type NameAndTypePage struct {
@@ -139,32 +141,11 @@ type NameAndTypePage struct {
 
 func NewNameAndTypePage() *NameAndTypePage {
 	page := &NameAndTypePage{
-		mappingType: "Kafka",
+		mappingType: MappingTypeKafka,
 	}
-	txtName := text.New("Mapping Name:")
-	editName := edit.New()
-	editName.OnTextSet(gowid.WidgetCallback{"editMappingName", func(app gowid.IApp, w gowid.IWidget) {
-		edt := w.(*edit.Widget)
-		page.mappingName = edt.Text()
-	}})
-	txtType := text.New("Mapping Type:")
-	fixed := gowid.RenderFixed{}
-	rbgroup := []radio.IWidget{}
-	c2cols := []gowid.IContainerWidget{}
-	for _, mappingType := range []string{"Kafka", "File"} {
-		func(mt string) {
-			rb := radio.New(&rbgroup)
-			rb.OnClick(gowid.WidgetCallback{fmt.Sprintf("cbRadio%s", mt), func(app gowid.IApp, w gowid.IWidget) {
-				page.mappingType = mt
-			}})
-			rbt := text.New(fmt.Sprintf(" %s ", mt))
-			c2cols = append(c2cols, &gowid.ContainerWidget{rb, fixed}, &gowid.ContainerWidget{rbt, fixed})
-		}(mappingType)
-	}
-	cols2 := columns.New(c2cols)
-	widgets := []gowid.IWidget{txtName, editName, txtType, cols2}
-	grid1 := grid.New(widgets, 20, 1, 1, gowid.HAlignMiddle{})
-	page.IWidget = grid1
+	nameWidget := form.NewLabeledEdit(&page.mappingName, "Mapping Name: ")
+	typeGroup := form.NewLabeledRadioGroup(&page.mappingType, "Mapping Type: ", MappingTypeKafka, MappingTypeFile)
+	page.IWidget = pile.NewFixed(nameWidget, typeGroup)
 	return page
 }
 
