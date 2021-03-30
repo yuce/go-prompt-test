@@ -11,6 +11,7 @@ import (
 	"github.com/gcla/gowid/widgets/text"
 	"github.com/gcla/gowid/widgets/vpadding"
 	hz "github.com/hazelcast/hazelcast-go-client/v4/hazelcast"
+	"github.com/hazelcast/hazelcast-go-client/v4/hazelcast/property"
 	"github.com/hazelcast/hazelcast-go-client/v4/hazelcast/sql"
 	log "github.com/sirupsen/logrus"
 	"hzsqlcl"
@@ -19,9 +20,9 @@ import (
 
 func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 	palette := gowid.Palette{
-		"hint":  gowid.MakePaletteEntry(gowid.ColorBlack, gowid.NewUrwidColor("light gray")),
-		"error": gowid.MakePaletteEntry(gowid.ColorRed, gowid.ColorDefault),
-		"line":  gowid.MakeStyledPaletteEntry(gowid.NewUrwidColor("black"), gowid.NewUrwidColor("light gray"), gowid.StyleBold),
+		"hint":       gowid.MakePaletteEntry(gowid.ColorBlack, gowid.NewUrwidColor("light gray")),
+		"error":      gowid.MakePaletteEntry(gowid.ColorRed, gowid.ColorDefault),
+		"line":       gowid.MakeStyledPaletteEntry(gowid.NewUrwidColor("black"), gowid.NewUrwidColor("light gray"), gowid.StyleBold),
 		"resultLine": gowid.MakePaletteEntry(gowid.ColorWhite, gowid.ColorDefault),
 	}
 	hline := styled.New(fill.New('-'), gowid.MakePaletteRef("line"))
@@ -65,6 +66,8 @@ func main() {
 
 	cb := hz.NewClientConfigBuilder()
 	cb.Cluster().SetName("jet")
+	cb.SetProperty(property.LoggingLevel, "error")
+
 	config, err := cb.Config()
 	if err != nil {
 		log.Fatal(err)
