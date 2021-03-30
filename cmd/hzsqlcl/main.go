@@ -42,7 +42,7 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		},
 	)
 	editBox := hzsqlcl.NewEditBox(resultWidget, func(app gowid.IApp, resultWidget gowid.IWidget, enteredText string) {
-		if enteredText == "wizard;" {
+		if enteredText == "w;" {
 			createMappingWizard.Open(viewHolder, gowid.RenderWithRatio{R: 0.5}, app)
 			return
 		}
