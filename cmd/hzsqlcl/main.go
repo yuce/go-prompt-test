@@ -20,9 +20,9 @@ import (
 func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 	palette := gowid.Palette{
 		"hint":  gowid.MakePaletteEntry(gowid.ColorBlack, gowid.NewUrwidColor("light gray")),
-		"error": gowid.MakePaletteEntry(gowid.ColorWhite, gowid.ColorRed),
+		"error": gowid.MakePaletteEntry(gowid.ColorRed, gowid.ColorDefault),
 		"line":  gowid.MakeStyledPaletteEntry(gowid.NewUrwidColor("black"), gowid.NewUrwidColor("light gray"), gowid.StyleBold),
-		"resultLine": gowid.MakePaletteEntry(gowid.ColorWhite, gowid.ColorBlack),
+		"resultLine": gowid.MakePaletteEntry(gowid.ColorWhite, gowid.ColorDefault),
 	}
 	hline := styled.New(fill.New('-'), gowid.MakePaletteRef("line"))
 	resultWidget := text.NewFromContentExt(hzsqlcl.CreateHintMessage(""),
@@ -35,7 +35,7 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		if err != nil {
 			resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateErrorMessage(err.Error()))
 		} else {
-			resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateHintMessage(handleSqlResult(res)))
+			resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateMessage(handleSqlResult(res), "resultLine"))
 		}
 	})
 	flow := gowid.RenderFlow{}
@@ -74,7 +74,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// populateMap(client)
+	populateMap(client)
 
 	statusBar := hzsqlcl.NewStatusBar()
 	app, err := createApp(statusBar)
