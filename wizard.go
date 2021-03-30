@@ -2,6 +2,7 @@ package hzsqlcl
 
 import (
 	"fmt"
+	"hzsqlcl/components"
 	"hzsqlcl/form"
 
 	"github.com/gcla/gowid/widgets/holder"
@@ -12,7 +13,6 @@ import (
 	"github.com/gcla/gowid/widgets/edit"
 	"github.com/gcla/gowid/widgets/fill"
 	"github.com/gcla/gowid/widgets/framed"
-	"github.com/gcla/gowid/widgets/grid"
 	"github.com/gcla/gowid/widgets/overlay"
 	"github.com/gcla/gowid/widgets/pile"
 	"github.com/gcla/gowid/widgets/styled"
@@ -77,6 +77,8 @@ func (wiz *Wizard) buttonBarForPage() gowid.IWidget {
 
 	okBtn := button.New(text.New("OK"))
 	okBtn.OnClick(gowid.WidgetCallback{"cbOK", func(app gowid.IApp, w gowid.IWidget) {
+		currentPage := wiz.pages[wiz.currentPage]
+		currentPage.UpdateState(wiz.state)
 		if wiz.handler != nil {
 			wiz.handler(app, wiz.state)
 		}
@@ -101,7 +103,7 @@ func (wiz *Wizard) widgetForCurrentPage() gowid.IWidget {
 	flow := gowid.RenderFlow{}
 	hline := styled.New(fill.New(' '), gowid.MakePaletteRef("line"))
 	btnBar := wiz.buttonBarForPage()
-	pilew := NewResizeablePile([]gowid.IContainerWidget{
+	pilew := components.NewResizeablePile([]gowid.IContainerWidget{
 		&gowid.ContainerWidget{IWidget: page, D: gowid.RenderWithWeight{2}},
 		&gowid.ContainerWidget{vpadding.New(
 			pile.New([]gowid.IContainerWidget{
@@ -158,22 +160,32 @@ func (p NameAndTypePage) UpdateState(state map[string]interface{}) {
 	state[MappingType] = p.mappingType
 }
 
-type PageWidget2 struct {
+type FieldsPage struct {
 	gowid.IWidget
+	fields []form.FieldFormState
 }
 
-func NewPageWidget2() *PageWidget2 {
-	txtName := text.New("XXXXX:")
-	editName := edit.New()
-	widgets := []gowid.IWidget{txtName, editName}
-	grid1 := grid.New(widgets, 20, 3, 1, gowid.HAlignMiddle{})
-	return &PageWidget2{grid1}
+func NewFieldsPage() *FieldsPage {
+	widget := &FieldsPage{}
+	addFieldBtn := button.New(text.New("Add Field"))
+	viewHolder := holder.New(addFieldBtn)
+	fieldTypes := []string{"VARCHAR", "INT"}
+	addFieldBtn.OnClick(gowid.WidgetCallback{"cbAddField", func(app gowid.IApp, w gowid.IWidget) {
+		frm := form.NewFormContainer("Add Field", form.NewFieldForm(fieldTypes...), func(app gowid.IApp, state interface{}) {
+			widget.fields = append(widget.fields, state.(form.FieldFormState))
+		})
+		frm.Open(app.SubWidget().(*holder.Widget), gowid.RenderWithRatio{R: 0.5}, app)
+	}})
+	widget.IWidget = viewHolder
+	return widget
 }
 
-func (p PageWidget2) PageName() string {
-	return "Page 2"
+func (p FieldsPage) PageName() string {
+	return "Fields"
 }
 
-func (p PageWidget2) UpdateState(state map[string]interface{}) {
-
+func (p FieldsPage) UpdateState(state map[string]interface{}) {
+	for _, field := range p.fields {
+		state[fmt.Sprintf("Field_%s", field.FieldName)] = field.FieldType
+	}
 }

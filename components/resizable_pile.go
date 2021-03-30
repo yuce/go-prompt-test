@@ -1,4 +1,4 @@
-package hzsqlcl
+package components
 
 import (
 	"github.com/gcla/gowid"

@@ -45,3 +45,11 @@ func NewLabeledRadioGroup(target *string, label string, items ...string) *Labele
 	widget.IWidget = columns.NewFixed(labelWidget, radioGroupWidget)
 	return widget
 }
+
+type LabeledEditRadioGroup struct {
+	gowid.IWidget
+	editTarget *string
+	rgTarget   *string
+}
+
+//func NewLabaledEditRadioGroup(editTarget *string, rgTarget *string, label string)

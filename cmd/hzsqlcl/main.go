@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"hzsqlcl/components"
 	"strings"
 
 	"hzsqlcl"
@@ -28,7 +29,7 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 
 	pages := []hzsqlcl.WizardPage{
 		hzsqlcl.NewNameAndTypePage(),
-		hzsqlcl.NewPageWidget2(),
+		hzsqlcl.NewFieldsPage(),
 	}
 
 	palette := gowid.Palette{
@@ -96,7 +97,7 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		resultWidget.(*text.Widget).SetContent(app, currentContent)
 	})
 	flow := gowid.RenderFlow{}
-	pilew := hzsqlcl.NewResizeablePile([]gowid.IContainerWidget{
+	pilew := components.NewResizeablePile([]gowid.IContainerWidget{
 		&gowid.ContainerWidget{IWidget: resultWidget, D: gowid.RenderWithWeight{2}},
 		&gowid.ContainerWidget{vpadding.New(
 			pile.New([]gowid.IContainerWidget{
