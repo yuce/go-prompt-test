@@ -15,6 +15,7 @@ import (
 	"github.com/hazelcast/hazelcast-go-client/v4/hazelcast/sql"
 	log "github.com/sirupsen/logrus"
 	"hzsqlcl"
+	"strings"
 	"time"
 )
 
@@ -31,16 +32,17 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 			Align: gowid.HAlignLeft{},
 		},
 	)
-	editBox := hzsqlcl.NewEditBox(resultWidget,
-		func(app gowid.IApp, resultWidget gowid.IWidget, enteredText string) {
-			res, err := client.ExecuteSQL(enteredText)
-			if err != nil {
-				resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateErrorMessage(err.Error()))
-			} else {
-				resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateMessage(handleSqlResult(res), "resultLine"))
-			}
-		},
-	)
+	editBox := hzsqlcl.NewEditBox(resultWidget, func(app gowid.IApp, resultWidget gowid.IWidget, enteredText string) {
+		trimmedEnteredText := strings.TrimSuffix(enteredText, ";")
+		//trimmedEnteredText := strings.TrimPrefix(strings.TrimSuffix(enteredText, ";\n"), "> ")
+		//resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateResultLineMessage(trimmedEnteredText))
+		res, err := client.ExecuteSQL(trimmedEnteredText)
+		if err != nil {
+			resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateErrorMessage(err.Error()))
+		} else {
+			resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateMessage(handleSqlResult(res), "resultLine"))
+		}
+	})
 	flow := gowid.RenderFlow{}
 	pilew := hzsqlcl.NewResizeablePile([]gowid.IContainerWidget{
 		&gowid.ContainerWidget{IWidget: resultWidget, D: gowid.RenderWithWeight{2}},

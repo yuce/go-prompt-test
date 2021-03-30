@@ -31,10 +31,19 @@ func (w *EditBox) UserInput(ev interface{}, size gowid.IRenderSize, focus gowid.
 		switch evk.Key() {
 		case tcell.KeyEnter:
 			t := w.IWidget.(*edit.Widget).Text()
-			w.IWidget.(*edit.Widget).SetText("", app)
-			if w.handler != nil {
-				w.handler(app, w.resultWidget, t)
+
+			if strings.HasSuffix(t, ";") {
+				w.IWidget.(*edit.Widget).SetText("", app)
+				if w.handler != nil {
+					w.handler(app, w.resultWidget, t)
+				}
+			} else {
+				inputWidget := w.IWidget.(*edit.Widget)
+				inputWidget.SetText(t + "\n", app)
+				inputWidget.SetCursorPos(inputWidget.CursorPos() + 1, app)
 			}
+
+
 			//w.resultWidget.SetContent(app, CreateHintMessage(t))
 
 			/*
