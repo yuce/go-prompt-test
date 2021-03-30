@@ -37,10 +37,16 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		//trimmedEnteredText := strings.TrimPrefix(strings.TrimSuffix(enteredText, ";\n"), "> ")
 		//resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateResultLineMessage(trimmedEnteredText))
 		res, err := client.ExecuteSQL(trimmedEnteredText)
+
+		currentText := resultWidget.(*text.Widget).Content().String() + "> "
+		currentText += enteredText + "\n"
+
 		if err != nil {
-			resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateErrorMessage(err.Error()))
+			errorMessage := hzsqlcl.CreateErrorMessage(err.Error())
+			resultWidget.(*text.Widget).SetText(currentText + errorMessage.String() + "\n", app)
 		} else {
-			resultWidget.(*text.Widget).SetContent(app, hzsqlcl.CreateMessage(handleSqlResult(res), "resultLine"))
+			result := hzsqlcl.CreateMessage(handleSqlResult(res), "resultLine")
+			resultWidget.(*text.Widget).SetText(currentText + result.String() + "\n", app)
 		}
 	})
 	flow := gowid.RenderFlow{}
