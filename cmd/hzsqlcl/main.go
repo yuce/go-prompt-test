@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/gcla/gowid"
-	"github.com/gcla/gowid/widgets/edit"
 	"github.com/gcla/gowid/widgets/fill"
 	"github.com/gcla/gowid/widgets/framed"
 	"github.com/gcla/gowid/widgets/holder"
@@ -11,15 +10,89 @@ import (
 	"github.com/gcla/gowid/widgets/styled"
 	"github.com/gcla/gowid/widgets/text"
 	"github.com/gcla/gowid/widgets/vpadding"
-	"github.com/gdamore/tcell"
 	hz "github.com/hazelcast/hazelcast-go-client/v4/hazelcast"
 	"github.com/hazelcast/hazelcast-go-client/v4/hazelcast/sql"
-	"log"
+	"hzsqlcl"
 	"time"
 )
 
-var txt *text.Widget
+func main() {
+	// connect the client
+	/*
+		cb := hz.NewClientConfigBuilder()
+		cb.Cluster().SetName("jet")
+		config, err := cb.Config()
+		if err != nil {
+			log.Fatal(err)
+		}
+		client, err = hz.StartNewClientWithConfig(config)
+		if err != nil {
+			log.Fatal(err)
+		}
+	*/
 
+	//populateMap(client)
+
+	palette := gowid.Palette{
+		"hint":  gowid.MakePaletteEntry(gowid.ColorBlack, gowid.NewUrwidColor("light gray")),
+		"error": gowid.MakePaletteEntry(gowid.ColorWhite, gowid.ColorRed),
+		"line":  gowid.MakeStyledPaletteEntry(gowid.NewUrwidColor("black"), gowid.NewUrwidColor("light gray"), gowid.StyleBold),
+	}
+	hline := styled.New(fill.New('-'), gowid.MakePaletteRef("line"))
+	txt := text.NewFromContentExt(hzsqlcl.CreateHintMessage("Hit tab to auto-complete"),
+		text.Options{
+			Align: gowid.HAlignLeft{},
+		},
+	)
+	statusBar := styled.New(txt, gowid.MakePaletteRef("hint"))
+	resultWidget := text.NewFromContentExt(hzsqlcl.CreateHintMessage(""),
+		text.Options{
+			Align: gowid.HAlignLeft{},
+		},
+	)
+	editBox := hzsqlcl.NewEditBox(resultWidget)
+	flow := gowid.RenderFlow{}
+	pilew := hzsqlcl.NewResizeablePile([]gowid.IContainerWidget{
+		&gowid.ContainerWidget{IWidget: resultWidget, D: gowid.RenderWithWeight{2}},
+		&gowid.ContainerWidget{vpadding.New(
+			pile.New([]gowid.IContainerWidget{
+				&gowid.ContainerWidget{IWidget: hline, D: gowid.RenderWithUnits{U: 1}},
+				&gowid.ContainerWidget{IWidget: editBox, D: flow},
+				&gowid.ContainerWidget{IWidget: statusBar, D: flow},
+			}),
+			gowid.VAlignBottom{}, flow,
+		), flow},
+	})
+	tw := text.New(" localhost:5701 ")
+	//twi := styled.New(tw, gowid.MakePaletteRef("invred"))
+	twp := holder.New(tw)
+	view := framed.New(pilew, framed.Options{
+		Frame:       framed.UnicodeFrame,
+		TitleWidget: twp,
+	})
+	app, _ := gowid.NewApp(gowid.AppArgs{
+		View:    view,
+		Palette: palette,
+	})
+
+	go func() {
+		for {
+			time.Sleep(2 * time.Second)
+			txt.SetContent(app, hzsqlcl.CreateHintMessage("create mapping MAPPING_NAME MAPPINT TYPE"))
+			app.Redraw()
+			time.Sleep(2 * time.Second)
+			txt.SetContent(app, hzsqlcl.CreateErrorMessage("ERROR: connection to the server was lost"))
+			app.Redraw()
+			time.Sleep(2 * time.Second)
+			txt.SetContent(app, hzsqlcl.CreateHintMessage(""))
+			app.Redraw()
+		}
+	}()
+
+	app.SimpleMainLoop()
+}
+
+/*
 func unhandled(app gowid.IApp, ev interface{}) bool {
 	if evk, ok := ev.(*tcell.EventKey); ok {
 		switch evk.Rune() {
@@ -31,34 +104,7 @@ func unhandled(app gowid.IApp, ev interface{}) bool {
 	}
 	return true
 }
-
-func createMessage(msg string, color string) *text.Content {
-	txtSegment := text.StyledContent(msg, gowid.MakePaletteRef(color))
-	return text.NewContent([]text.ContentSegment{
-		txtSegment,
-	})
-}
-
-func createHintMessage(msg string) *text.Content {
-	return createMessage(msg, "banner")
-}
-
-func createErrorMessage(msg string) *text.Content {
-	return createMessage(msg, "error")
-}
-
-type EditBox struct {
-	gowid.IWidget
-	resultWidget *text.Widget
-}
-
-func NewEditBox(resultWidget *text.Widget) *EditBox {
-	editWidget := edit.New(edit.Options{Caption: "SQL> "})
-	return &EditBox{
-		IWidget:      editWidget,
-		resultWidget: resultWidget,
-	}
-}
+*/
 
 func handleSqlResult(result sql.Result) string {
 	var res string
@@ -91,42 +137,6 @@ func handleSqlResult(result sql.Result) string {
 	return res
 }
 
-func (w *EditBox) UserInput(ev interface{}, size gowid.IRenderSize, focus gowid.Selector, app gowid.IApp) bool {
-	res := true
-	if evk, ok := ev.(*tcell.EventKey); ok {
-		switch evk.Key() {
-		case tcell.KeyEnter:
-			t := w.IWidget.(*edit.Widget).Text()
-			result, err := client.ExecuteSQL(t)
-			var responseMessage string
-			if err != nil {
-				responseMessage = fmt.Sprintf("could not execute sql %s", err)
-				w.resultWidget.SetContent(app, createHintMessage(responseMessage))
-			} else {
-				responseMessage = handleSqlResult(result)
-				w.resultWidget.SetContent(app, createErrorMessage(responseMessage))
-			}
-
-			//w.IWidget = text.New(fmt.Sprintf("Executed SQL: %s.", t))
-			w.IWidget.(*edit.Widget).SetText("", app)
-		default:
-			res = w.IWidget.UserInput(ev, size, focus, app)
-		}
-	}
-	return res
-}
-
-type ResizeablePileWidget struct {
-	*pile.Widget
-	offset int
-}
-
-func NewResizeablePile(widgets []gowid.IContainerWidget) *ResizeablePileWidget {
-	res := &ResizeablePileWidget{}
-	res.Widget = pile.New(widgets)
-	return res
-}
-
 // for testing
 func populateMap(client *hz.Client) {
 	someMap, _ := client.GetMap("someMap")
@@ -142,87 +152,3 @@ func populateMap(client *hz.Client) {
 }
 
 var client *hz.Client
-
-func main() {
-	// connect the client
-	cb := hz.NewClientConfigBuilder()
-	cb.Cluster().SetName("jet")
-	config, err := cb.Config()
-	if err != nil {
-		log.Fatal(err)
-	}
-	client, err = hz.StartNewClientWithConfig(config)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	populateMap(client)
-
-	palette := gowid.Palette{
-		"banner": gowid.MakePaletteEntry(gowid.ColorBlack, gowid.NewUrwidColor("light gray")),
-		"error":  gowid.MakePaletteEntry(gowid.ColorWhite, gowid.ColorRed),
-		"line":   gowid.MakeStyledPaletteEntry(gowid.NewUrwidColor("black"), gowid.NewUrwidColor("light gray"), gowid.StyleBold),
-	}
-	hline := styled.New(fill.New('-'), gowid.MakePaletteRef("line"))
-	txt := text.NewFromContentExt(createHintMessage("Hit tab to auto-complete"),
-		text.Options{
-			Align: gowid.HAlignLeft{},
-		},
-	)
-	resultWidget := text.NewFromContentExt(createHintMessage(""),
-		text.Options{
-			Align: gowid.HAlignLeft{},
-		},
-	)
-	editBox := NewEditBox(resultWidget)
-	flow := gowid.RenderFlow{}
-	pilew := NewResizeablePile([]gowid.IContainerWidget{
-		&gowid.ContainerWidget{IWidget: resultWidget, D: gowid.RenderWithWeight{2}},
-		//&gowid.ContainerWidget{IWidget: divider.NewBlank(), D: flow},
-		&gowid.ContainerWidget{vpadding.New(
-			pile.New([]gowid.IContainerWidget{
-				&gowid.ContainerWidget{IWidget: hline, D: gowid.RenderWithUnits{U: 1}},
-				&gowid.ContainerWidget{IWidget: editBox, D: flow},
-				&gowid.ContainerWidget{IWidget: txt, D: flow},
-			}),
-			gowid.VAlignBottom{}, flow,
-		), flow},
-		//&gowid.ContainerWidget{IWidget: editBox, D: flow},
-		//&gowid.ContainerWidget{IWidget: txt, D: flow},
-	})
-	/*
-		view := vpadding.New(
-			pile.New([]gowid.IContainerWidget{
-				&gowid.ContainerWidget{IWidget: resultWidget, D: flow},
-				&gowid.ContainerWidget{IWidget: divider.NewBlank(), D: flow},
-				&gowid.ContainerWidget{IWidget: editBox, D: flow},
-				&gowid.ContainerWidget{IWidget: txt, D: flow},
-			}),
-			gowid.VAlignBottom{}, flow,
-		)
-	*/
-	tw := text.New(" localhost:5701 ")
-	//twi := styled.New(tw, gowid.MakePaletteRef("invred"))
-	twp := holder.New(tw)
-	view := framed.New(pilew, framed.Options{
-		Frame:       framed.UnicodeFrame,
-		TitleWidget: twp,
-	})
-	app, _ := gowid.NewApp(gowid.AppArgs{
-		View:    view,
-		Palette: palette,
-	})
-
-	go func() {
-		time.Sleep(2 * time.Second)
-		hintMsg := createHintMessage("create mapping MAPPING_NAME MAPPINT TYPE")
-		txt.SetContent(app, hintMsg)
-		app.Redraw()
-		time.Sleep(2 * time.Second)
-		errorMsg := createErrorMessage("ERROR: connection to the server was lost")
-		txt.SetContent(app, errorMsg)
-		app.Redraw()
-	}()
-
-	app.SimpleMainLoop()
-}
