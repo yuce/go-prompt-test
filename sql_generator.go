@@ -60,7 +60,7 @@ func (fs fieldStrings) Len() int {
 }
 
 func (fs fieldStrings) Less(i, j int) bool {
-	return strings.TrimPrefix(fs[i], "_") < strings.TrimPrefix(fs[j], "_")
+	return strings.TrimLeft(fs[i], "_") < strings.TrimLeft(fs[j], "_")
 }
 
 func (fs fieldStrings) Swap(i, j int) {
