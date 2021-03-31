@@ -3,6 +3,8 @@ package form
 import (
 	"fmt"
 
+	"github.com/gcla/gowid/widgets/fixedadapter"
+
 	"github.com/gcla/gowid"
 	"github.com/gcla/gowid/widgets/edit"
 )
@@ -21,6 +23,10 @@ func NewLabeledEdit(target *string, label string) *LabeledEdit {
 		edt := w.(*edit.Widget)
 		*widget.target = edt.Text()
 	}})
-	widget.IWidget = editWidget
+	widget.IWidget = fixedadapter.New(editWidget)
 	return widget
+}
+
+func (e *LabeledEdit) SetText(app gowid.IApp, txt string) {
+	e.IWidget.(*edit.Widget).SetText(txt, app)
 }
