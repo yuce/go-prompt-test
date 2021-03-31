@@ -36,16 +36,22 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 
 	createSourceWizard := []hzsqlcl.WizardPage{
 		hzsqlcl.NewSourceNameAndTypePage(),
-		hzsqlcl.NewFieldsPage("Specify to which SQL columns should the Kafka topic be mapped.\n\nClick Add Column button to add columns.", "Map Kafka topic to table"),
+		hzsqlcl.NewFieldsPage("Specify to which SQL columns should the Kafka topic be mapped.\n\nClick Add Column button to add columns.", "Map Kafka topic to table", ""),
 		hzsqlcl.NewSerializationPage("Serialization of the source"),
 		hzsqlcl.NewSourceOptionsPage(),
 	}
 
 	createSinkWizard := []hzsqlcl.WizardPage{
 		hzsqlcl.NewSinkNameAndTypePage(),
-		hzsqlcl.NewFieldsPage("Specify the layout of your destination using SQL columns.\n\nClick Add Column button to add columns.", "Create IMap layout"),
+		hzsqlcl.NewFieldsPage("Specify the layout of your destination using SQL columns.\n\nClick Add Column button to add columns.", "Create IMap layout", ""),
 		hzsqlcl.NewSerializationPage("Serialization of the sink"),
 		hzsqlcl.NewSinkOptionsPage(),
+	}
+
+	createJobWizard := []hzsqlcl.WizardPage{
+		hzsqlcl.NewJobNamePage(),
+		hzsqlcl.NewFieldsPage("List the fields that the sink has.", "Specify sink layout", "Sink_"),
+		hzsqlcl.NewFieldsPage("List the fields that the source has.", "Specify source layout", "Source_"),
 	}
 
 	palette := gowid.Palette{
@@ -80,6 +86,13 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 			editBox.SetText(app, generatedSQL)
 		}
 	})
+	jobWizard := hzsqlcl.NewWizard(createJobWizard, func(app gowid.IApp, state hzsqlcl.WizardState) {
+		if generatedSQL, err := hzsqlcl.CreateSQLForJob(state); err != nil {
+			panic(err)
+		} else {
+			editBox.SetText(app, generatedSQL)
+		}
+	})
 
 
 	editBox = hzsqlcl.NewEditBox(resultWidget, func(app gowid.IApp, resultWidget gowid.IWidget, enteredText string) {
@@ -88,6 +101,9 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 			return
 		} else if enteredText == "w2;" {
 			sinkCreateMappingWizard.Open(viewHolder, gowid.RenderWithRatio{R: 0.5}, app)
+			return
+		} else if enteredText == "w3;" {
+			jobWizard.Open(viewHolder, gowid.RenderWithRatio{R: 0.5}, app)
 			return
 		} else if strings.Trim(strings.TrimRight(enteredText, ";"), " \n\t") == "help" {
 			currentContent := resultWidget.(*text.Widget).Content()

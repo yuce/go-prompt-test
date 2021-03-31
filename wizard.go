@@ -134,7 +134,7 @@ func (wiz *Wizard) widgetForCurrentPage() gowid.IWidget {
 	})
 	frame := framed.New(pilew, framed.Options{
 		Frame: framed.UnicodeFrame,
-		Title: fmt.Sprintf(" Create Mapping: %s ", page.PageName()),
+		Title: fmt.Sprintf(" %s ", page.PageName()),
 	})
 	styledFrame := shadow.New(cellmod.Opaque(styled.New(frame, backgroundStyle)), 1)
 	return styledFrame
@@ -158,6 +158,9 @@ const (
 	MappingSerializationJson     = "json"
 	MappingSerializationAvro     = "avro"
 	MappingSerializationPortable = "portable"
+	JobName						 = "jobName"
+	SinkName					 = "sinkName"
+	SourceName					 = "sourceName"
 )
 
 type SourceNameAndTypePage struct {
@@ -178,7 +181,7 @@ func NewSourceNameAndTypePage() *SourceNameAndTypePage {
 }
 
 func (p SourceNameAndTypePage) PageName() string {
-	return "Source"
+	return "Create Mapping: Source"
 }
 
 func (p SourceNameAndTypePage) UpdateState(state map[string]interface{}) {
@@ -194,10 +197,11 @@ type FieldsPage struct {
 	gowid.IWidget
 	fields []form.FieldFormState
 	pageName string
+	fieldKeyPrefix string
 }
 
-func NewFieldsPage(header string, pageName string) *FieldsPage {
-	widget := &FieldsPage{pageName: pageName}
+func NewFieldsPage(header string, pageName string, fieldKeyPrefix string) *FieldsPage {
+	widget := &FieldsPage{pageName: pageName, fieldKeyPrefix: fieldKeyPrefix}
 	widget.IWidget = holder.New(text.New(header))
 	return widget
 }
@@ -208,7 +212,7 @@ func (p FieldsPage) PageName() string {
 
 func (p FieldsPage) UpdateState(state map[string]interface{}) {
 	for _, field := range p.fields {
-		state[fmt.Sprintf("Field_%s", field.FieldName)] = field.FieldType
+		state[fmt.Sprintf("%sField_%s", p.fieldKeyPrefix,  field.FieldName)] = field.FieldType
 	}
 }
 
@@ -292,15 +296,19 @@ func (p *SourceOptionsPage) ExtraButtons() []*button.Widget {
 
 type SinkOptionsPage struct {
 	gowid.IWidget
-	connectionAddress string
+	valuePortableFactoryId string
+	valuePortableClassId string
 }
 
 func NewSinkOptionsPage() *SinkOptionsPage {
 	widget := &SinkOptionsPage{
-		connectionAddress: "127.0.0.1:9092",
 	}
 
-	widget.IWidget = form.NewLabeledEdit(&widget.connectionAddress, "Connection Address: ")
+	valuePortableFactoryId := form.NewLabeledEdit(&widget.valuePortableFactoryId, "Portable Factory ID: ")
+	valuePortableClassId := form.NewLabeledEdit(&widget.valuePortableClassId, "Portable Class ID: ")
+	widget.IWidget = pile.NewFixed(valuePortableFactoryId, valuePortableClassId)
+
+	//widget.IWidget = form.NewLabeledEdit(&widget.connectionAddress, "Connection Address: ")
 	return widget
 }
 
@@ -309,7 +317,6 @@ func (p SinkOptionsPage) PageName() string {
 }
 
 func (p SinkOptionsPage) UpdateState(state map[string]interface{}) {
-	state[fmt.Sprintf("Option_%s", "bootstrap.server")] = p.connectionAddress
 	state[fmt.Sprintf("Option_%s", "key_format")] = "int"
 	randomInt := rand.Intn(100)
 	state[fmt.Sprintf("Option_Int_%s", "valuePortableFactoryId")] =  strconv.Itoa(randomInt)
@@ -385,7 +392,7 @@ func NewSinkNameAndTypePage() *SinkNameAndTypePage {
 }
 
 func (p SinkNameAndTypePage) PageName() string {
-	return "Sink"
+	return "Create Mapping: Sink"
 }
 
 func (p SinkNameAndTypePage) UpdateState(state map[string]interface{}) {
@@ -394,5 +401,38 @@ func (p SinkNameAndTypePage) UpdateState(state map[string]interface{}) {
 }
 
 func (p SinkNameAndTypePage) ExtraButtons() []*button.Widget {
+	return nil
+}
+
+
+type JobNamePage struct {
+	gowid.IWidget
+	jobName string
+	sinkName string
+	sourceName string
+	editName    *edit.Widget
+}
+
+func NewJobNamePage() *JobNamePage {
+	page := &JobNamePage{jobName: "haha", sinkName: "hihi", sourceName: "hoho"}
+
+	jobName := form.NewLabeledEdit(&page.jobName, "Ingestion Job Name: ")
+	sinkName := form.NewLabeledEdit(&page.sinkName, "Sink where to store: ")
+	sourceName := form.NewLabeledEdit(&page.sourceName, "Source from where to read: ")
+	page.IWidget = pile.NewFixed(jobName, sinkName, sourceName)
+	return page
+}
+
+func (p JobNamePage) PageName() string {
+	return "Ingestion job"
+}
+
+func (p JobNamePage) UpdateState(state map[string]interface{}) {
+	state[JobName] = p.jobName
+	state[SinkName] = p.sinkName
+	state[SourceName] = p.sourceName
+}
+
+func (p JobNamePage) ExtraButtons() []*button.Widget {
 	return nil
 }
