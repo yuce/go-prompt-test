@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hazelcast/hazelcast-go-client/v4/hazelcast"
+
 	"github.com/gcla/gowid/widgets/cellmod"
 	"github.com/gcla/gowid/widgets/shadow"
 
@@ -454,7 +456,6 @@ type JobNamePage struct {
 	jobName    string
 	sinkName   string
 	sourceName string
-	editName   *edit.Widget
 }
 
 func NewJobNamePage() *JobNamePage {
@@ -485,5 +486,41 @@ func (p JobNamePage) UpdateState(state map[string]interface{}) {
 }
 
 func (p JobNamePage) ExtraButtons() []*button.Widget {
+	return nil
+}
+
+type IntermediateSQLProvider func(state map[string]interface{}) string
+
+type IntermediateSQLPage struct {
+	gowid.IWidget
+	client      *hazelcast.Client
+	sqlProvider IntermediateSQLProvider
+}
+
+func NewIntermediateSQLPage(client *hazelcast.Client, sqlProvider IntermediateSQLProvider) *IntermediateSQLPage {
+	page := &IntermediateSQLPage{
+		client:      client,
+		sqlProvider: sqlProvider,
+	}
+	page.IWidget = text.New("")
+	return page
+}
+
+func (o IntermediateSQLPage) PageName() string {
+	return "Generated SQL"
+}
+
+func (p IntermediateSQLPage) LoadState(app gowid.IApp, state map[string]interface{}) {
+	sql := p.sqlProvider(state)
+	p.IWidget.(*text.Widget).SetText(sql, app)
+}
+
+func (p IntermediateSQLPage) UpdateState(state map[string]interface{}) {
+	if p.client != nil {
+		p.client.ExecuteSQL(p.sqlProvider(state))
+	}
+}
+
+func (p IntermediateSQLPage) ExtraButtons() []*button.Widget {
 	return nil
 }

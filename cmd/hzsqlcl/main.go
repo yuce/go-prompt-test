@@ -54,18 +54,33 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		components.NewFieldsPage("List the fields that the source has.", "Specify source layout", "Source_"),
 	}
 
+	const sourcePrefix = "Source_"
+	const sinkPrefix = "Sink_"
+
 	createMegaWizard := []components.WizardPage{
 		components.NewSourceNameAndTypePage(),
-		components.NewFieldsPage("Specify to which SQL columns should the Kafka topic be mapped.\n\nClick Add Column button to add columns.", "Map Kafka topic to table", "Source_"),
+		components.NewFieldsPage("Specify to which SQL columns should the Kafka topic be mapped.\n\nClick Add Column button to add columns.", "Map Kafka topic to table", sourcePrefix),
 		components.NewSerializationPage("Serialization of the source"),
 		components.NewSourceOptionsPage(),
+		components.NewIntermediateSQLPage(client, func(state map[string]interface{}) string {
+			sqlText, _ := hzsqlcl.CreateSQLForCreateMapping(sourcePrefix, state)
+			return sqlText
+		}),
 		components.NewSinkNameAndTypePage(),
-		components.NewFieldsPage("Specify the layout of your destination using SQL columns.\n\nClick Add Column button to add columns.", "Create IMap layout", "Sink_"),
+		components.NewFieldsPage("Specify the layout of your destination using SQL columns.\n\nClick Add Column button to add columns.", "Create IMap layout", sinkPrefix),
 		components.NewSerializationPage("Serialization of the sink"),
 		components.NewSinkOptionsPage(),
+		components.NewIntermediateSQLPage(client, func(state map[string]interface{}) string {
+			sqlText, _ := hzsqlcl.CreateSQLForCreateMapping(sinkPrefix, state)
+			return sqlText
+		}),
 		components.NewJobNamePage(),
-		components.NewFieldsPage("List the fields that the sink has.", "Specify sink layout", "Sink_"),
-		components.NewFieldsPage("List the fields that the source has.", "Specify source layout", "Source_"),
+		components.NewFieldsPage("List the fields that the sink has.", "Specify sink layout", sinkPrefix),
+		components.NewFieldsPage("List the fields that the source has.", "Specify source layout", sourcePrefix),
+		components.NewIntermediateSQLPage(client, func(state map[string]interface{}) string {
+			sqlText, _ := hzsqlcl.CreateSQLForJob(state)
+			return sqlText
+		}),
 	}
 
 	palette := gowid.Palette{
@@ -87,14 +102,14 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		},
 	)
 	sourceCreateMappingWizard := components.NewWizard(createSourceWizard, func(app gowid.IApp, state components.WizardState) {
-		if generatedSQL, err := hzsqlcl.CreateSQLForCreateMapping(state); err != nil {
+		if generatedSQL, err := hzsqlcl.CreateSQLForCreateMapping(sourcePrefix, state); err != nil {
 			panic(err)
 		} else {
 			editBox.SetText(app, generatedSQL)
 		}
 	})
 	sinkCreateMappingWizard := components.NewWizard(createSinkWizard, func(app gowid.IApp, state components.WizardState) {
-		if generatedSQL, err := hzsqlcl.CreateSQLForCreateMapping(state); err != nil {
+		if generatedSQL, err := hzsqlcl.CreateSQLForCreateMapping(sinkPrefix, state); err != nil {
 			panic(err)
 		} else {
 			editBox.SetText(app, generatedSQL)
@@ -109,11 +124,11 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 	})
 
 	megaWizard := components.NewWizard(createMegaWizard, func(app gowid.IApp, state components.WizardState) {
-		if generatedSQL, err := hzsqlcl.CreateSQLForJob(state); err != nil {
-			panic(err)
-		} else {
-			editBox.SetText(app, generatedSQL)
-		}
+		//if generatedSQL, err := hzsqlcl.CreateSQLForJob(state); err != nil {
+		//	panic(err)
+		//} else {
+		//	editBox.SetText(app, generatedSQL)
+		//}
 	})
 
 	editBox = hzsqlcl.NewEditBox(resultWidget, func(app gowid.IApp, resultWidget gowid.IWidget, enteredText string) {

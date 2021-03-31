@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-func CreateSQLForCreateMapping(keyValues map[string]interface{}) (string, error) {
-	const field = "Field_"
+func CreateSQLForCreateMapping(fieldPrefix string, keyValues map[string]interface{}) (string, error) {
+	field := fmt.Sprintf("%sField_", fieldPrefix)
 	const option = "Option_"
 	const intPrefix = "Int_"
 	mappingName := keyValues[components.MappingName]
