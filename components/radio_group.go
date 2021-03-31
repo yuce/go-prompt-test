@@ -12,11 +12,16 @@ import (
 
 type RadioGroup struct {
 	gowid.IWidget
+	name   string
 	target *string
 }
 
-func NewRadioGroup(target *string, items ...string) *RadioGroup {
-	widget := &RadioGroup{target: target}
+func NewRadioGroup(name string, target *string, items ...string) *RadioGroup {
+	// TODO: set selected by name
+	widget := &RadioGroup{
+		name:   name,
+		target: target,
+	}
 	rbGroup := []radio.IWidget{}
 	rows := []interface{}{}
 	for _, name := range items {
@@ -38,10 +43,10 @@ type LabeledRadioGroup struct {
 	target *string
 }
 
-func NewLabeledRadioGroup(target *string, label string, items ...string) *LabeledRadioGroup {
+func NewLabeledRadioGroup(name string, target *string, label string, items ...string) *LabeledRadioGroup {
 	labelWidget := text.New(label)
 	widget := &LabeledRadioGroup{target: target}
-	radioGroupWidget := NewRadioGroup(target, items...)
+	radioGroupWidget := NewRadioGroup(name, target, items...)
 	widget.IWidget = columns.NewFixed(labelWidget, radioGroupWidget)
 	return widget
 }

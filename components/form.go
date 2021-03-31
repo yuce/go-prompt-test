@@ -124,8 +124,9 @@ func NewFieldForm(items ...string) *FieldForm {
 	//backgroundStyle := gowid.MakePaletteEntry(DefaultText, DefaultBackground)
 	//borderStyle := gowid.MakePaletteEntry(DefaultButton, DefaultBackground)
 	widget := &FieldForm{fieldFormState: FieldFormState{FieldType: "VARCHAR"}}
-	fieldNameWidget := NewLabeledEdit(&widget.fieldFormState.FieldName, "Column Name: ")
-	fieldTypeWidget := NewLabeledRadioGroup(&widget.fieldFormState.FieldType, "Column Type: ", items...)
+
+	fieldNameWidget := NewLabeledEdit("ColumnName", &widget.fieldFormState.FieldName, "Column Name: ")
+	fieldTypeWidget := NewLabeledRadioGroup("ColumnType", &widget.fieldFormState.FieldType, "Column Type: ", items...)
 	pl := pile.NewFixed(fieldNameWidget, fieldTypeWidget)
 	//w := hpadding.New(
 	//	styled.NewExt(pl, backgroundStyle, buttonStyle),
@@ -152,8 +153,8 @@ type OptionForm struct {
 
 func NewOptionForm() *OptionForm {
 	widget := &OptionForm{}
-	optionNameWidget := NewLabeledEdit(&widget.optionFormState.OptionName, "Option Name: ")
-	optionValueWidget := NewLabeledEdit(&widget.optionFormState.OptionValue, "Option Value: ")
+	optionNameWidget := NewLabeledEdit("OptionName", &widget.optionFormState.OptionName, "Option Name: ")
+	optionValueWidget := NewLabeledEdit("OptionValue", &widget.optionFormState.OptionValue, "Option Value: ")
 	widget.IWidget = pile.NewFixed(optionNameWidget, optionValueWidget)
 	return widget
 }

@@ -78,6 +78,10 @@ func (wiz *Wizard) buttonBarForPage() gowid.IWidget {
 	btnNext.OnClick(gowid.WidgetCallback{"cbNext", func(app gowid.IApp, w gowid.IWidget) {
 		currentPage := wiz.pages[wiz.currentPage]
 		currentPage.UpdateState(wiz.state)
+		// copy the state to global
+		for k, v := range wiz.state {
+			UpdateGlobal(k, v)
+		}
 		wiz.gotoNextPage(app)
 	}})
 	btnOk := button.New(text.New("OK"))
@@ -172,8 +176,8 @@ func NewSourceNameAndTypePage() *SourceNameAndTypePage {
 	page := &SourceNameAndTypePage{
 		mappingType: MappingTypeKafka,
 	}
-	nameWidget := NewLabeledEdit(&page.mappingName, "Mapping Name: ")
-	typeGroup := NewLabeledRadioGroup(&page.mappingType, "Mapping Type: ", MappingTypeKafka, MappingTypeFile)
+	nameWidget := NewLabeledEdit(MappingName, &page.mappingName, "Mapping Name: ")
+	typeGroup := NewLabeledRadioGroup(MappingType, &page.mappingType, "Mapping Type: ", MappingTypeKafka, MappingTypeFile)
 	page.IWidget = pile.NewFixed(nameWidget, typeGroup)
 	return page
 }
@@ -210,7 +214,8 @@ func (p FieldsPage) PageName() string {
 
 func (p FieldsPage) UpdateState(state map[string]interface{}) {
 	for _, field := range p.fields {
-		state[fmt.Sprintf("%sField_%s", p.fieldKeyPrefix, field.FieldName)] = field.FieldType
+		key := fmt.Sprintf("%sField_%s", p.fieldKeyPrefix, field.FieldName)
+		state[key] = field.FieldType
 	}
 }
 
@@ -248,7 +253,7 @@ func NewSerializationPage(pageName string) *SerializationPage {
 		pageName:          pageName,
 	}
 
-	serializationGroup := NewLabeledRadioGroup(&widget.serializationType, "Serialization Type: ", MappingSerializationJson, MappingSerializationAvro, MappingSerializationPortable)
+	serializationGroup := NewLabeledRadioGroup(SerializationType, &widget.serializationType, "Serialization Type: ", MappingSerializationJson, MappingSerializationAvro, MappingSerializationPortable)
 	widget.IWidget = pile.NewFixed(serializationGroup)
 
 	return widget
@@ -263,7 +268,8 @@ func (p SerializationPage) ExtraButtons() []*button.Widget {
 }
 
 func (p SerializationPage) UpdateState(state map[string]interface{}) {
-	state[fmt.Sprintf("Option_%s", "value_format")] = p.serializationType
+	key := fmt.Sprintf("Option_%s", "value_format")
+	state[key] = p.serializationType
 	//state[SerializationType] = p.serializationType
 }
 
@@ -276,7 +282,7 @@ func NewSourceOptionsPage() *SourceOptionsPage {
 	widget := &SourceOptionsPage{
 		connectionAddress: "127.0.0.1:9092",
 	}
-	widget.IWidget = NewLabeledEdit(&widget.connectionAddress, "Connection Address: ")
+	widget.IWidget = NewLabeledEdit("Option_bootstrap.server", &widget.connectionAddress, "Connection Address: ")
 	return widget
 }
 
@@ -285,7 +291,7 @@ func (p SourceOptionsPage) PageName() string {
 }
 
 func (p SourceOptionsPage) UpdateState(state map[string]interface{}) {
-	state[fmt.Sprintf("Option_%s", "bootstrap.server")] = p.connectionAddress
+	state[p.IWidget.(NamedComponent).ComponentName()] = p.connectionAddress
 }
 
 func (p *SourceOptionsPage) ExtraButtons() []*button.Widget {
@@ -301,8 +307,8 @@ type SinkOptionsPage struct {
 func NewSinkOptionsPage() *SinkOptionsPage {
 	widget := &SinkOptionsPage{}
 
-	valuePortableFactoryId := NewLabeledEdit(&widget.valuePortableFactoryId, "Portable Factory ID: ")
-	valuePortableClassId := NewLabeledEdit(&widget.valuePortableClassId, "Portable Class ID: ")
+	valuePortableFactoryId := NewLabeledEdit("Option_Int_valuePortableFactoryId", &widget.valuePortableFactoryId, "Portable Factory ID: ")
+	valuePortableClassId := NewLabeledEdit("Option_Int_valuePortableClassId", &widget.valuePortableClassId, "Portable Class ID: ")
 	widget.IWidget = pile.NewFixed(valuePortableFactoryId, valuePortableClassId)
 
 	//widget.IWidget = form.NewLabeledEdit(&widget.connectionAddress, "Connection Address: ")
@@ -314,11 +320,11 @@ func (p SinkOptionsPage) PageName() string {
 }
 
 func (p SinkOptionsPage) UpdateState(state map[string]interface{}) {
-	state[fmt.Sprintf("Option_%s", "key_format")] = "int"
+	state["Option_key_format"] = "int"
 	randomInt := rand.Intn(100)
-	state[fmt.Sprintf("Option_Int_%s", "valuePortableFactoryId")] = strconv.Itoa(randomInt)
+	state["Option_Int_valuePortableFactoryId"] = strconv.Itoa(randomInt)
 	randomInt++
-	state[fmt.Sprintf("Option_Int_%s", "valuePortableClassId")] = strconv.Itoa(randomInt)
+	state["Option_Int_valuePortableClassId"] = strconv.Itoa(randomInt)
 }
 
 func (p *SinkOptionsPage) ExtraButtons() []*button.Widget {
@@ -382,8 +388,8 @@ func NewSinkNameAndTypePage() *SinkNameAndTypePage {
 	page := &SinkNameAndTypePage{
 		mappingType: MappingTypeIMap,
 	}
-	nameWidget := NewLabeledEdit(&page.mappingName, "Mapping Name: ")
-	typeGroup := NewLabeledRadioGroup(&page.mappingType, "Mapping Type: ", MappingTypeIMap, MappingTypeKafka)
+	nameWidget := NewLabeledEdit(MappingName, &page.mappingName, "Mapping Name: ")
+	typeGroup := NewLabeledRadioGroup(MappingType, &page.mappingType, "Mapping Type: ", MappingTypeIMap, MappingTypeKafka)
 	page.IWidget = pile.NewFixed(nameWidget, typeGroup)
 	return page
 }
@@ -410,11 +416,14 @@ type JobNamePage struct {
 }
 
 func NewJobNamePage() *JobNamePage {
-	page := &JobNamePage{jobName: "haha", sinkName: "hihi", sourceName: "hoho"}
-
-	jobName := NewLabeledEdit(&page.jobName, "Ingestion Job Name: ")
-	sinkName := NewLabeledEdit(&page.sinkName, "Sink where to store: ")
-	sourceName := NewLabeledEdit(&page.sourceName, "Source from where to read: ")
+	page := &JobNamePage{jobName: "job_1", sinkName: "sink_1", sourceName: "source_1"}
+	// the following is just for display !!!
+	UpdateGlobal(JobName, "job_1")
+	UpdateGlobal(SinkName, "sink_1")
+	UpdateGlobal(SourceName, "source_1")
+	jobName := NewLabeledEdit(JobName, &page.jobName, "Ingestion Job Name: ")
+	sinkName := NewLabeledEdit(SinkName, &page.sinkName, "Sink where to store: ")
+	sourceName := NewLabeledEdit(SourceName, &page.sourceName, "Source from where to read: ")
 	page.IWidget = pile.NewFixed(jobName, sinkName, sourceName)
 	return page
 }

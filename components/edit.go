@@ -9,18 +9,22 @@ import (
 
 type LabeledEdit struct {
 	gowid.IWidget
-	target *string
 	name   string
+	target *string
 }
 
-func NewLabeledEdit(target *string, label string) *LabeledEdit {
-	widget := &LabeledEdit{target: target}
-	editWidget := edit.New(edit.Options{
+func NewLabeledEdit(name string, target *string, label string) *LabeledEdit {
+	value, valueFound := FindGlobalValue(name)
+	editOptions := edit.Options{
 		Caption: label,
-	})
+	}
+	if valueFound {
+		editOptions.Text = value.(string)
+	}
+	widget := &LabeledEdit{target: target}
+	editWidget := edit.New(editOptions)
 	editWidget.OnTextSet(gowid.WidgetCallback{fmt.Sprintf("edit%s", label), func(app gowid.IApp, w gowid.IWidget) {
-		edt := w.(*edit.Widget)
-		*widget.target = edt.Text()
+		*widget.target = w.(*edit.Widget).Text()
 	}})
 	widget.IWidget = editWidget
 	return widget
@@ -30,8 +34,6 @@ func (e *LabeledEdit) SetText(app gowid.IApp, txt string) {
 	e.IWidget.(*edit.Widget).SetText(txt, app)
 }
 
-func (e *LabeledEdit) MaybeSetValueFromState(app gowid.IApp, state map[string]interface{}) {
-	if v, ok := state[e.name]; ok {
-		e.SetText(app, v.(string))
-	}
+func (e LabeledEdit) ComponentName() string {
+	return e.name
 }
