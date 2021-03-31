@@ -127,7 +127,7 @@ func NewFieldForm(items ...string) *FieldForm {
 
 	fieldNameWidget := NewLabeledEdit("ColumnName", &widget.fieldFormState.FieldName, "Column Name: ")
 	fieldTypeWidget := NewLabeledRadioGroup("ColumnType", &widget.fieldFormState.FieldType, "Column Type: ", items...)
-	pl := pile.NewFixed(fieldNameWidget, fieldTypeWidget)
+	pl := pile.NewFlow(fieldNameWidget, fieldTypeWidget)
 	//w := hpadding.New(
 	//	styled.NewExt(pl, backgroundStyle, buttonStyle),
 	//	gowid.HAlignMiddle{},
