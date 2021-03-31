@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"hzsqlcl/components"
 	"hzsqlcl/form"
+	"math/rand"
 
 	"github.com/gcla/gowid/widgets/cellmod"
 	"github.com/gcla/gowid/widgets/shadow"
@@ -263,28 +264,59 @@ func (p SerializationPage) UpdateState(state map[string]interface{}) {
 	//state[SerializationType] = p.serializationType
 }
 
-type OptionsPage struct {
+type SourceOptionsPage struct {
 	gowid.IWidget
 	connectionAddress string
 }
 
-func NewOptionsPage() *OptionsPage {
-	widget := &OptionsPage{
+func NewSourceOptionsPage() *SourceOptionsPage {
+	widget := &SourceOptionsPage{
 		connectionAddress: "127.0.0.1:9092",
 	}
 	widget.IWidget = form.NewLabeledEdit(&widget.connectionAddress, "Connection Address: ")
 	return widget
 }
 
-func (p OptionsPage) PageName() string {
+func (p SourceOptionsPage) PageName() string {
 	return "Additional Options"
 }
 
-func (p OptionsPage) UpdateState(state map[string]interface{}) {
+func (p SourceOptionsPage) UpdateState(state map[string]interface{}) {
 	state[fmt.Sprintf("Option_%s", "bootstrap.server")] = p.connectionAddress
 }
 
-func (p *OptionsPage) ExtraButtons() []*button.Widget {
+func (p *SourceOptionsPage) ExtraButtons() []*button.Widget {
+	return nil
+}
+
+type SinkOptionsPage struct {
+	gowid.IWidget
+	connectionAddress string
+}
+
+func NewSinkOptionsPage() *SinkOptionsPage {
+	widget := &SinkOptionsPage{
+		connectionAddress: "127.0.0.1:9092",
+	}
+
+	widget.IWidget = form.NewLabeledEdit(&widget.connectionAddress, "Connection Address: ")
+	return widget
+}
+
+func (p SinkOptionsPage) PageName() string {
+	return "Additional Options"
+}
+
+func (p SinkOptionsPage) UpdateState(state map[string]interface{}) {
+	state[fmt.Sprintf("Option_%s", "bootstrap.server")] = p.connectionAddress
+	state[fmt.Sprintf("Option_%s", "key_format")] = "int"
+	randomInt := rand.Intn(100)
+	state[fmt.Sprintf("Option_Int_%s", "valuePortableFactoryId")] = randomInt
+	randomInt++
+	state[fmt.Sprintf("Option_Int_%s", "valuePortableClassId")] = randomInt
+}
+
+func (p *SinkOptionsPage) ExtraButtons() []*button.Widget {
 	return nil
 }
 
