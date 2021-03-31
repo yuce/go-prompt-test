@@ -132,7 +132,7 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 	})
 
 	editBox = hzsqlcl.NewEditBox(resultWidget, func(app gowid.IApp, resultWidget gowid.IWidget, enteredText string) {
-		if enteredText == "data ingestion wizard;" {
+		if enteredText == "data-ingestion-wizard;" {
 			megaWizard.Open(viewHolder, gowid.RenderWithRatio{R: 0.5}, app)
 			return
 		} else if enteredText == "w;" {
@@ -159,7 +159,7 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "You can create a mapping \n", Style: gowid.MakePaletteRef("resultLine")})
 			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "CREATE JOB: ", Style: gowid.MakePaletteRef("query")})
 			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "You can create a job \n", Style: gowid.MakePaletteRef("resultLine")})
-			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "data ingestion wizard: ", Style: gowid.MakePaletteRef("query")})
+			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "data-ingestion-wizard: ", Style: gowid.MakePaletteRef("query")})
 			currentContent.AddAt(currentContent.Length(), text.ContentSegment{Text: "This will start a wizard with which you can digest data easily\n", Style: gowid.MakePaletteRef("resultLine")})
 
 			resultWidget.(*text.Widget).SetContent(app, currentContent)

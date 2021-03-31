@@ -121,5 +121,8 @@ func (w *EditBox) autoComplete(t string, app gowid.IApp) {
 	} else if strings.HasPrefix(t, "C") {
 		w.IWidget.(*edit.Widget).SetText("CREATE MAPPING", app)
 		w.IWidget.(*edit.Widget).SetCursorPos(len(w.IWidget.(*edit.Widget).Text()), app)
+	}else if strings.HasPrefix(t, "d") {
+		w.IWidget.(*edit.Widget).SetText("data-ingestion-wizard", app)
+		w.IWidget.(*edit.Widget).SetCursorPos(len(w.IWidget.(*edit.Widget).Text()), app)
 	}
 }
