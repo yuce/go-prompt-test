@@ -178,7 +178,7 @@ func NewSourceNameAndTypePage() *SourceNameAndTypePage {
 	}
 	nameWidget := NewLabeledEdit(MappingName, &page.mappingName, "Mapping Name: ")
 	typeGroup := NewLabeledRadioGroup(MappingType, &page.mappingType, "Mapping Type: ", MappingTypeKafka, MappingTypeFile)
-	page.IWidget = pile.NewFixed(nameWidget, typeGroup)
+	page.IWidget = pile.NewFlow(nameWidget, typeGroup)
 	return page
 }
 
@@ -341,7 +341,7 @@ func NewSinkOptionsPage() *SinkOptionsPage {
 
 	valuePortableFactoryId := NewLabeledEdit("Option_Int_valuePortableFactoryId", &widget.valuePortableFactoryId, "Portable Factory ID: ")
 	valuePortableClassId := NewLabeledEdit("Option_Int_valuePortableClassId", &widget.valuePortableClassId, "Portable Class ID: ")
-	widget.IWidget = pile.NewFixed(valuePortableFactoryId, valuePortableClassId)
+	widget.IWidget = pile.NewFlow(valuePortableFactoryId, valuePortableClassId)
 
 	//widget.IWidget = form.NewLabeledEdit(&widget.connectionAddress, "Connection Address: ")
 	return widget
@@ -428,7 +428,7 @@ func NewSinkNameAndTypePage() *SinkNameAndTypePage {
 	}
 	nameWidget := NewLabeledEdit(MappingName, &page.mappingName, "Mapping Name: ")
 	typeGroup := NewLabeledRadioGroup(MappingType, &page.mappingType, "Mapping Type: ", MappingTypeIMap, MappingTypeKafka)
-	page.IWidget = pile.NewFixed(nameWidget, typeGroup)
+	page.IWidget = pile.NewFlow(nameWidget, typeGroup)
 	return page
 }
 
@@ -466,7 +466,7 @@ func NewJobNamePage() *JobNamePage {
 	jobName := NewLabeledEdit(JobName, &page.jobName, "Ingestion Job Name: ")
 	sinkName := NewLabeledEdit(SinkName, &page.sinkName, "Sink where to store: ")
 	sourceName := NewLabeledEdit(SourceName, &page.sourceName, "Source from where to read: ")
-	page.IWidget = pile.NewFixed(jobName, sinkName, sourceName)
+	page.IWidget = pile.NewFlow(jobName, sinkName, sourceName)
 	return page
 }
 
