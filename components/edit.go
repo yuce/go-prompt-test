@@ -22,6 +22,7 @@ func NewLabeledEdit(name string, target *string, label string) *LabeledEdit {
 		editOptions.Text = value.(string)
 	}
 	widget := &LabeledEdit{target: target}
+	widget.name = name
 	editWidget := edit.New(editOptions)
 	editWidget.OnTextSet(gowid.WidgetCallback{fmt.Sprintf("edit%s", label), func(app gowid.IApp, w gowid.IWidget) {
 		*widget.target = w.(*edit.Widget).Text()
