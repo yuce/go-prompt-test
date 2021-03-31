@@ -5,6 +5,7 @@ import (
 	"hzsqlcl/components"
 	"hzsqlcl/form"
 	"math/rand"
+	"strconv"
 
 	"github.com/gcla/gowid/widgets/cellmod"
 	"github.com/gcla/gowid/widgets/shadow"
@@ -311,9 +312,9 @@ func (p SinkOptionsPage) UpdateState(state map[string]interface{}) {
 	state[fmt.Sprintf("Option_%s", "bootstrap.server")] = p.connectionAddress
 	state[fmt.Sprintf("Option_%s", "key_format")] = "int"
 	randomInt := rand.Intn(100)
-	state[fmt.Sprintf("Option_Int_%s", "valuePortableFactoryId")] = randomInt
+	state[fmt.Sprintf("Option_Int_%s", "valuePortableFactoryId")] =  strconv.Itoa(randomInt)
 	randomInt++
-	state[fmt.Sprintf("Option_Int_%s", "valuePortableClassId")] = randomInt
+	state[fmt.Sprintf("Option_Int_%s", "valuePortableClassId")] =  strconv.Itoa(randomInt)
 }
 
 func (p *SinkOptionsPage) ExtraButtons() []*button.Widget {

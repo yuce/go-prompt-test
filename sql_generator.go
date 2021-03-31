@@ -18,13 +18,8 @@ func CreateSQLForCreateMapping(keyValues map[string]interface{}) (string, error)
 			k = k[len(field):]
 			fields = append(fields, fmt.Sprintf("%s %s", k, v))
 		} else if strings.HasPrefix(k, option) {
-			if strings.HasPrefix(k, option + intPrefix) {
-				k = k[len(option + intPrefix):]
-				options = append(options, fmt.Sprintf("'%s' = %i", k, v))
-			} else {
-				k = k[len(option):]
-				options = append(options, fmt.Sprintf("'%s' = '%s'", k, v))
-			}
+			k = k[len(option):]
+			options = append(options, fmt.Sprintf("'%s' = '%s'", k, v))
 		}
 	}
 	return strings.TrimSpace(fmt.Sprintf(`
