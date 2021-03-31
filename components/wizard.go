@@ -309,7 +309,7 @@ func NewSourceOptionsPage() *SourceOptionsPage {
 	widget := &SourceOptionsPage{
 		connectionAddress: "127.0.0.1:9092",
 	}
-	widget.IWidget = NewLabeledEdit("Option_bootstrap.server", &widget.connectionAddress, "Connection Address: ")
+	widget.IWidget = NewLabeledEdit("Option_bootstrap.servers", &widget.connectionAddress, "Connection Address: ")
 	return widget
 }
 
