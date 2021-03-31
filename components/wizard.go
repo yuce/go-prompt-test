@@ -459,11 +459,11 @@ type JobNamePage struct {
 }
 
 func NewJobNamePage() *JobNamePage {
-	page := &JobNamePage{jobName: "job_1", sinkName: "sink_1", sourceName: "source_1"}
+	page := &JobNamePage{jobName: "ingest_json_from_kafka_to_imap_as_portable", sinkName: "persons", sourceName: "myJsonTopic"}
 	// the following is just for display !!!
-	UpdateGlobal(JobName, "job_1")
-	UpdateGlobal(SinkName, "sink_1")
-	UpdateGlobal(SourceName, "source_1")
+	UpdateGlobal(JobName, "ingest_json_from_kafka_to_imap_as_portable")
+	UpdateGlobal(SinkName, "persons")
+	UpdateGlobal(SourceName, "myJsonTopic")
 	jobName := NewLabeledEdit(JobName, &page.jobName, "Ingestion Job Name: ")
 	sinkName := NewLabeledEdit(SinkName, &page.sinkName, "Sink where to store: ")
 	sourceName := NewLabeledEdit(SourceName, &page.sourceName, "Source from where to read: ")
