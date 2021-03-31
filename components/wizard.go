@@ -338,11 +338,11 @@ type SinkOptionsPage struct {
 func NewSinkOptionsPage() *SinkOptionsPage {
 	widget := &SinkOptionsPage{}
 
-	UpdateGlobal("Option_Int_valuePortableFactoryId", "88")
-	UpdateGlobal("Option_Int_valuePortableClassId", "92")
+	UpdateGlobal("Option_valuePortableFactoryId", "88")
+	UpdateGlobal("Option_valuePortableClassId", "92")
 
-	valuePortableFactoryId := NewLabeledEdit("Option_Int_valuePortableFactoryId", &widget.valuePortableFactoryId, "Portable Factory ID: ")
-	valuePortableClassId := NewLabeledEdit("Option_Int_valuePortableClassId", &widget.valuePortableClassId, "Portable Class ID: ")
+	valuePortableFactoryId := NewLabeledEdit("Option_valuePortableFactoryId", &widget.valuePortableFactoryId, "Portable Factory ID: ")
+	valuePortableClassId := NewLabeledEdit("Option_valuePortableClassId", &widget.valuePortableClassId, "Portable Class ID: ")
 	widget.IWidget = pile.NewFlow(valuePortableFactoryId, valuePortableClassId)
 
 	//widget.IWidget = form.NewLabeledEdit(&widget.connectionAddress, "Connection Address: ")
@@ -361,10 +361,10 @@ func (p SinkOptionsPage) UpdateState(state map[string]interface{}) {
 	state["Option_keyFormat"] = "int"
 	//randomInt := rand.Intn(100)
 	//state["Option_Int_valuePortableFactoryId"] = strconv.Itoa(randomInt)
-	state["Option_Int_valuePortableFactoryId"] = "88"
+	state["Option_valuePortableFactoryId"] = "88"
 	//randomInt++
 	//state["Option_Int_valuePortableClassId"] = strconv.Itoa(randomInt)
-	state["Option_Int_valuePortableClassId"] = "92"
+	state["Option_valuePortableClassId"] = "92"
 }
 
 func (p *SinkOptionsPage) ExtraButtons() []*button.Widget {
