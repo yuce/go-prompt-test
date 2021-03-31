@@ -2,6 +2,7 @@ package hzsqlcl
 
 import (
 	"fmt"
+	"hzsqlcl/components"
 	"strings"
 )
 
@@ -9,8 +10,8 @@ func CreateSQLForCreateMapping(keyValues map[string]interface{}) (string, error)
 	const field = "Field_"
 	const option = "Option_"
 	const intPrefix = "Int_"
-	mappingName := keyValues[MappingName]
-	mappingType := keyValues[MappingType]
+	mappingName := keyValues[components.MappingName]
+	mappingType := keyValues[components.MappingType]
 	fields := []string{}
 	options := []string{}
 	for k, v := range keyValues {
@@ -30,9 +31,9 @@ func CreateSQLForCreateMapping(keyValues map[string]interface{}) (string, error)
 func CreateSQLForJob(keyValues map[string]interface{}) (string, error) {
 	const sinkField = "Sink_Field_"
 	const sourceField = "Source_Field_"
-	jobName := keyValues[JobName]
-	sinkName := keyValues[SinkName]
-	sourceName := keyValues[SourceName]
+	jobName := keyValues[components.JobName]
+	sinkName := keyValues[components.SinkName]
+	sourceName := keyValues[components.SourceName]
 	sinkFields := []string{}
 	sourceFields := []string{}
 	for k, _ := range keyValues {

@@ -1,9 +1,7 @@
-package hzsqlcl
+package components
 
 import (
 	"fmt"
-	"hzsqlcl/components"
-	"hzsqlcl/form"
 	"math/rand"
 	"strconv"
 
@@ -109,7 +107,7 @@ func (wiz *Wizard) buttonBarForPage() gowid.IWidget {
 	}
 	colsW := []gowid.IContainerWidget{}
 	for _, btn := range buttons {
-		colsW = append(colsW, components.MakeStylishButton(btn))
+		colsW = append(colsW, MakeStylishButton(btn))
 	}
 	return columns.New(colsW)
 }
@@ -122,7 +120,7 @@ func (wiz *Wizard) widgetForCurrentPage() gowid.IWidget {
 	flow := gowid.RenderFlow{}
 	hline := styled.New(fill.New('-'), borderStyle)
 	btnBar := wiz.buttonBarForPage()
-	pilew := components.NewResizeablePile([]gowid.IContainerWidget{
+	pilew := NewResizeablePile([]gowid.IContainerWidget{
 		&gowid.ContainerWidget{IWidget: page, D: gowid.RenderWithWeight{2}},
 		&gowid.ContainerWidget{vpadding.New(
 			pile.New([]gowid.IContainerWidget{
@@ -158,9 +156,9 @@ const (
 	MappingSerializationJson     = "json"
 	MappingSerializationAvro     = "avro"
 	MappingSerializationPortable = "portable"
-	JobName						 = "jobName"
-	SinkName					 = "sinkName"
-	SourceName					 = "sourceName"
+	JobName                      = "jobName"
+	SinkName                     = "sinkName"
+	SourceName                   = "sourceName"
 )
 
 type SourceNameAndTypePage struct {
@@ -174,8 +172,8 @@ func NewSourceNameAndTypePage() *SourceNameAndTypePage {
 	page := &SourceNameAndTypePage{
 		mappingType: MappingTypeKafka,
 	}
-	nameWidget := form.NewLabeledEdit(&page.mappingName, "Mapping Name: ")
-	typeGroup := form.NewLabeledRadioGroup(&page.mappingType, "Mapping Type: ", MappingTypeKafka, MappingTypeFile)
+	nameWidget := NewLabeledEdit(&page.mappingName, "Mapping Name: ")
+	typeGroup := NewLabeledRadioGroup(&page.mappingType, "Mapping Type: ", MappingTypeKafka, MappingTypeFile)
 	page.IWidget = pile.NewFixed(nameWidget, typeGroup)
 	return page
 }
@@ -195,8 +193,8 @@ func (p SourceNameAndTypePage) ExtraButtons() []*button.Widget {
 
 type FieldsPage struct {
 	gowid.IWidget
-	fields []form.FieldFormState
-	pageName string
+	fields         []FieldFormState
+	pageName       string
 	fieldKeyPrefix string
 }
 
@@ -212,7 +210,7 @@ func (p FieldsPage) PageName() string {
 
 func (p FieldsPage) UpdateState(state map[string]interface{}) {
 	for _, field := range p.fields {
-		state[fmt.Sprintf("%sField_%s", p.fieldKeyPrefix,  field.FieldName)] = field.FieldType
+		state[fmt.Sprintf("%sField_%s", p.fieldKeyPrefix, field.FieldName)] = field.FieldType
 	}
 }
 
@@ -220,8 +218,8 @@ func (p *FieldsPage) ExtraButtons() []*button.Widget {
 	fieldTypes := []string{"VARCHAR", "INT"}
 	addFieldBtn := button.New(text.New("Add Column"))
 	addFieldBtn.OnClick(gowid.WidgetCallback{"cbAddField", func(app gowid.IApp, w gowid.IWidget) {
-		frm := form.NewFormContainer("Add Column", form.NewFieldForm(fieldTypes...), nil, func(app gowid.IApp, state interface{}) {
-			field := state.(form.FieldFormState)
+		frm := NewFormContainer("Add Column", NewFieldForm(fieldTypes...), nil, func(app gowid.IApp, state interface{}) {
+			field := state.(FieldFormState)
 			p.fields = append(p.fields, field)
 			hl := p.IWidget.(*holder.Widget)
 			widgets := []gowid.IWidget{}
@@ -241,16 +239,16 @@ func (p *FieldsPage) ExtraButtons() []*button.Widget {
 type SerializationPage struct {
 	gowid.IWidget
 	serializationType string
-	pageName string
+	pageName          string
 }
 
 func NewSerializationPage(pageName string) *SerializationPage {
 	widget := &SerializationPage{
 		serializationType: MappingSerializationJson,
-		pageName: pageName,
+		pageName:          pageName,
 	}
 
-	serializationGroup := form.NewLabeledRadioGroup(&widget.serializationType, "Serialization Type: ", MappingSerializationJson, MappingSerializationAvro, MappingSerializationPortable)
+	serializationGroup := NewLabeledRadioGroup(&widget.serializationType, "Serialization Type: ", MappingSerializationJson, MappingSerializationAvro, MappingSerializationPortable)
 	widget.IWidget = pile.NewFixed(serializationGroup)
 
 	return widget
@@ -278,7 +276,7 @@ func NewSourceOptionsPage() *SourceOptionsPage {
 	widget := &SourceOptionsPage{
 		connectionAddress: "127.0.0.1:9092",
 	}
-	widget.IWidget = form.NewLabeledEdit(&widget.connectionAddress, "Connection Address: ")
+	widget.IWidget = NewLabeledEdit(&widget.connectionAddress, "Connection Address: ")
 	return widget
 }
 
@@ -297,15 +295,14 @@ func (p *SourceOptionsPage) ExtraButtons() []*button.Widget {
 type SinkOptionsPage struct {
 	gowid.IWidget
 	valuePortableFactoryId string
-	valuePortableClassId string
+	valuePortableClassId   string
 }
 
 func NewSinkOptionsPage() *SinkOptionsPage {
-	widget := &SinkOptionsPage{
-	}
+	widget := &SinkOptionsPage{}
 
-	valuePortableFactoryId := form.NewLabeledEdit(&widget.valuePortableFactoryId, "Portable Factory ID: ")
-	valuePortableClassId := form.NewLabeledEdit(&widget.valuePortableClassId, "Portable Class ID: ")
+	valuePortableFactoryId := NewLabeledEdit(&widget.valuePortableFactoryId, "Portable Factory ID: ")
+	valuePortableClassId := NewLabeledEdit(&widget.valuePortableClassId, "Portable Class ID: ")
 	widget.IWidget = pile.NewFixed(valuePortableFactoryId, valuePortableClassId)
 
 	//widget.IWidget = form.NewLabeledEdit(&widget.connectionAddress, "Connection Address: ")
@@ -319,9 +316,9 @@ func (p SinkOptionsPage) PageName() string {
 func (p SinkOptionsPage) UpdateState(state map[string]interface{}) {
 	state[fmt.Sprintf("Option_%s", "key_format")] = "int"
 	randomInt := rand.Intn(100)
-	state[fmt.Sprintf("Option_Int_%s", "valuePortableFactoryId")] =  strconv.Itoa(randomInt)
+	state[fmt.Sprintf("Option_Int_%s", "valuePortableFactoryId")] = strconv.Itoa(randomInt)
 	randomInt++
-	state[fmt.Sprintf("Option_Int_%s", "valuePortableClassId")] =  strconv.Itoa(randomInt)
+	state[fmt.Sprintf("Option_Int_%s", "valuePortableClassId")] = strconv.Itoa(randomInt)
 }
 
 func (p *SinkOptionsPage) ExtraButtons() []*button.Widget {
@@ -385,8 +382,8 @@ func NewSinkNameAndTypePage() *SinkNameAndTypePage {
 	page := &SinkNameAndTypePage{
 		mappingType: MappingTypeIMap,
 	}
-	nameWidget := form.NewLabeledEdit(&page.mappingName, "Mapping Name: ")
-	typeGroup := form.NewLabeledRadioGroup(&page.mappingType, "Mapping Type: ",MappingTypeIMap, MappingTypeKafka)
+	nameWidget := NewLabeledEdit(&page.mappingName, "Mapping Name: ")
+	typeGroup := NewLabeledRadioGroup(&page.mappingType, "Mapping Type: ", MappingTypeIMap, MappingTypeKafka)
 	page.IWidget = pile.NewFixed(nameWidget, typeGroup)
 	return page
 }
@@ -404,21 +401,20 @@ func (p SinkNameAndTypePage) ExtraButtons() []*button.Widget {
 	return nil
 }
 
-
 type JobNamePage struct {
 	gowid.IWidget
-	jobName string
-	sinkName string
+	jobName    string
+	sinkName   string
 	sourceName string
-	editName    *edit.Widget
+	editName   *edit.Widget
 }
 
 func NewJobNamePage() *JobNamePage {
 	page := &JobNamePage{jobName: "haha", sinkName: "hihi", sourceName: "hoho"}
 
-	jobName := form.NewLabeledEdit(&page.jobName, "Ingestion Job Name: ")
-	sinkName := form.NewLabeledEdit(&page.sinkName, "Sink where to store: ")
-	sourceName := form.NewLabeledEdit(&page.sourceName, "Source from where to read: ")
+	jobName := NewLabeledEdit(&page.jobName, "Ingestion Job Name: ")
+	sinkName := NewLabeledEdit(&page.sinkName, "Sink where to store: ")
+	sourceName := NewLabeledEdit(&page.sourceName, "Source from where to read: ")
 	page.IWidget = pile.NewFixed(jobName, sinkName, sourceName)
 	return page
 }

@@ -1,4 +1,4 @@
-package form
+package components
 
 import (
 	"fmt"
@@ -10,6 +10,7 @@ import (
 type LabeledEdit struct {
 	gowid.IWidget
 	target *string
+	name   string
 }
 
 func NewLabeledEdit(target *string, label string) *LabeledEdit {
@@ -27,4 +28,10 @@ func NewLabeledEdit(target *string, label string) *LabeledEdit {
 
 func (e *LabeledEdit) SetText(app gowid.IApp, txt string) {
 	e.IWidget.(*edit.Widget).SetText(txt, app)
+}
+
+func (e *LabeledEdit) MaybeSetValueFromState(app gowid.IApp, state map[string]interface{}) {
+	if v, ok := state[e.name]; ok {
+		e.SetText(app, v.(string))
+	}
 }

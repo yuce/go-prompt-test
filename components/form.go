@@ -1,8 +1,6 @@
-package form
+package components
 
 import (
-	"hzsqlcl/components"
-
 	"github.com/gcla/gowid/widgets/fill"
 
 	"github.com/gcla/gowid/widgets/shadow"
@@ -19,6 +17,11 @@ import (
 	"github.com/gcla/gowid/widgets/text"
 	"github.com/gcla/gowid/widgets/vpadding"
 )
+
+type SettableWidget interface {
+	gowid.IWidget
+	MaybeSetValueFromJar(jar map[string]interface{})
+}
 
 type FormFragment interface {
 	gowid.IWidget
@@ -77,7 +80,7 @@ func (f *FormContainer) buttonBar() gowid.IWidget {
 	buttons = append(buttons, cancelBtn, okBtn)
 	colsW := []gowid.IContainerWidget{}
 	for _, btn := range buttons {
-		colsW = append(colsW, components.MakeStylishButton(btn))
+		colsW = append(colsW, MakeStylishButton(btn))
 	}
 	return columns.New(colsW)
 }
@@ -87,7 +90,7 @@ func (f *FormContainer) frame() gowid.IWidget {
 	backgroundStyle := gowid.MakePaletteRef("background")
 	flow := gowid.RenderFlow{}
 	hline := styled.New(fill.New('-'), borderStyle)
-	pilew := components.NewResizeablePile([]gowid.IContainerWidget{
+	pilew := NewResizeablePile([]gowid.IContainerWidget{
 		&gowid.ContainerWidget{IWidget: f.widget, D: gowid.RenderWithWeight{2}},
 		&gowid.ContainerWidget{vpadding.New(
 			pile.New([]gowid.IContainerWidget{
