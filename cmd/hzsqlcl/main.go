@@ -54,6 +54,20 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		components.NewFieldsPage("List the fields that the source has.", "Specify source layout", "Source_"),
 	}
 
+	createMegaWizard := []components.WizardPage{
+		components.NewSourceNameAndTypePage(),
+		components.NewFieldsPage("Specify to which SQL columns should the Kafka topic be mapped.\n\nClick Add Column button to add columns.", "Map Kafka topic to table", "Source_"),
+		components.NewSerializationPage("Serialization of the source"),
+		components.NewSourceOptionsPage(),
+		components.NewSinkNameAndTypePage(),
+		components.NewFieldsPage("Specify the layout of your destination using SQL columns.\n\nClick Add Column button to add columns.", "Create IMap layout", "Sink_"),
+		components.NewSerializationPage("Serialization of the sink"),
+		components.NewSinkOptionsPage(),
+		components.NewJobNamePage(),
+		components.NewFieldsPage("List the fields that the sink has.", "Specify sink layout", "Sink_"),
+		components.NewFieldsPage("List the fields that the source has.", "Specify source layout", "Source_"),
+	}
+
 	palette := gowid.Palette{
 		"hint":       gowid.MakePaletteEntry(gowid.ColorBlack, gowid.NewUrwidColor("light gray")),
 		"error":      gowid.MakePaletteEntry(gowid.ColorRed, gowid.ColorDefault),
@@ -94,8 +108,19 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 		}
 	})
 
+	megaWizard := components.NewWizard(createMegaWizard, func(app gowid.IApp, state components.WizardState) {
+		if generatedSQL, err := hzsqlcl.CreateSQLForJob(state); err != nil {
+			panic(err)
+		} else {
+			editBox.SetText(app, generatedSQL)
+		}
+	})
+
 	editBox = hzsqlcl.NewEditBox(resultWidget, func(app gowid.IApp, resultWidget gowid.IWidget, enteredText string) {
-		if enteredText == "w;" {
+		if enteredText == "m;" {
+			megaWizard.Open(viewHolder, gowid.RenderWithRatio{R: 0.5}, app)
+			return
+		} else if enteredText == "w;" {
 			sourceCreateMappingWizard.Open(viewHolder, gowid.RenderWithRatio{R: 0.5}, app)
 			return
 		} else if enteredText == "w2;" {

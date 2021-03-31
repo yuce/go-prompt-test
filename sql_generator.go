@@ -3,6 +3,7 @@ package hzsqlcl
 import (
 	"fmt"
 	"hzsqlcl/components"
+	"sort"
 	"strings"
 )
 
@@ -34,18 +35,34 @@ func CreateSQLForJob(keyValues map[string]interface{}) (string, error) {
 	jobName := keyValues[components.JobName]
 	sinkName := keyValues[components.SinkName]
 	sourceName := keyValues[components.SourceName]
-	sinkFields := []string{}
-	sourceFields := []string{}
+	sinkFields := fieldStrings{}
+	sourceFields := fieldStrings{}
 	for k, _ := range keyValues {
 		if strings.HasPrefix(k, sinkField) {
-			k = k[len(sinkField):]
-			sinkFields = append(sinkFields, fmt.Sprintf("%s", k))
+			key := k[len(sinkField):]
+			sinkFields = append(sinkFields, key)
 		} else if strings.HasPrefix(k, sourceField) {
-			k = k[len(sourceField):]
-			sourceFields = append(sourceFields, fmt.Sprintf("%s", k))
+			key := k[len(sourceField):]
+			sourceFields = append(sourceFields, key)
 		}
 	}
+	sort.Sort(sinkFields)
+	sort.Sort(sourceFields)
 	return strings.TrimSpace(fmt.Sprintf(`
-		CREATE JOB %s AS SINK INTO %s (%s) SELECT %s FROM %s;
-	`, jobName, sinkName, strings.Join(sinkFields, ", "), strings.Join(sourceFields, ", "), sourceName)), nil
+			CREATE JOB %s AS SINK INTO %s (%s) SELECT %s FROM %s;
+		`, jobName, sinkName, strings.Join(sinkFields, ", "), strings.Join(sourceFields, ", "), sourceName)), nil
+}
+
+type fieldStrings []string
+
+func (fs fieldStrings) Len() int {
+	return len(fs)
+}
+
+func (fs fieldStrings) Less(i, j int) bool {
+	return strings.TrimPrefix(fs[i], "-") < strings.TrimPrefix(fs[j], "-")
+}
+
+func (fs fieldStrings) Swap(i, j int) {
+	fs[i], fs[j] = fs[j], fs[i]
 }

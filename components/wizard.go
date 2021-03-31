@@ -2,8 +2,7 @@ package components
 
 import (
 	"fmt"
-	"math/rand"
-	"strconv"
+	"strings"
 
 	"github.com/gcla/gowid/widgets/cellmod"
 	"github.com/gcla/gowid/widgets/shadow"
@@ -28,6 +27,7 @@ import (
 type WizardPage interface {
 	gowid.IWidget
 	PageName() string
+	LoadState(app gowid.IApp, state map[string]interface{})
 	UpdateState(state map[string]interface{})
 	ExtraButtons() []*button.Widget
 }
@@ -59,7 +59,7 @@ func NewWizard(pages []WizardPage, handler WizardHandler) *Wizard {
 func (wiz *Wizard) Open(container gowid.ISettableComposite, width gowid.IWidgetDimension, app gowid.IApp) {
 	wiz.currentPage = 0
 	wiz.state = map[string]interface{}{}
-	wiz.currentHolderWidget = holder.New(wiz.widgetForCurrentPage())
+	wiz.currentHolderWidget = holder.New(wiz.widgetForCurrentPage(app))
 	wiz.savedContainer = container
 	wiz.savedSubWidget = container.SubWidget()
 	ov := overlay.New(wiz.currentHolderWidget, wiz.savedSubWidget,
@@ -116,11 +116,11 @@ func (wiz *Wizard) buttonBarForPage() gowid.IWidget {
 	return columns.New(colsW)
 }
 
-func (wiz *Wizard) widgetForCurrentPage() gowid.IWidget {
+func (wiz *Wizard) widgetForCurrentPage(app gowid.IApp) gowid.IWidget {
 	borderStyle := gowid.MakePaletteRef("border")
 	backgroundStyle := gowid.MakePaletteRef("background")
-
 	page := wiz.pages[wiz.currentPage]
+	page.LoadState(app, wiz.state)
 	flow := gowid.RenderFlow{}
 	hline := styled.New(fill.New('-'), borderStyle)
 	btnBar := wiz.buttonBarForPage()
@@ -145,7 +145,7 @@ func (wiz *Wizard) widgetForCurrentPage() gowid.IWidget {
 func (wiz *Wizard) gotoNextPage(app gowid.IApp) {
 	if wiz.currentPage < len(wiz.pages)-1 && wiz.currentHolderWidget != nil {
 		wiz.currentPage++
-		wiz.currentHolderWidget.SetSubWidget(wiz.widgetForCurrentPage(), app)
+		wiz.currentHolderWidget.SetSubWidget(wiz.widgetForCurrentPage(app), app)
 	}
 }
 
@@ -186,6 +186,10 @@ func (p SourceNameAndTypePage) PageName() string {
 	return "Create Mapping: Source"
 }
 
+func (p SourceNameAndTypePage) LoadState(app gowid.IApp, state map[string]interface{}) {
+
+}
+
 func (p SourceNameAndTypePage) UpdateState(state map[string]interface{}) {
 	state[MappingName] = p.mappingName
 	state[MappingType] = p.mappingType
@@ -212,6 +216,20 @@ func (p FieldsPage) PageName() string {
 	return p.pageName
 }
 
+func (p FieldsPage) LoadState(app gowid.IApp, state map[string]interface{}) {
+	fieldPrefix := fmt.Sprintf("%sField_", p.fieldKeyPrefix)
+	for k, v := range state {
+		if strings.HasPrefix(k, fieldPrefix) {
+			name := k[len(fieldPrefix):]
+			field := FieldFormState{
+				FieldName: name,
+				FieldType: v.(string),
+			}
+			p.createField(app, field)
+		}
+	}
+}
+
 func (p FieldsPage) UpdateState(state map[string]interface{}) {
 	for _, field := range p.fields {
 		key := fmt.Sprintf("%sField_%s", p.fieldKeyPrefix, field.FieldName)
@@ -224,21 +242,24 @@ func (p *FieldsPage) ExtraButtons() []*button.Widget {
 	addFieldBtn := button.New(text.New("Add Column"))
 	addFieldBtn.OnClick(gowid.WidgetCallback{"cbAddField", func(app gowid.IApp, w gowid.IWidget) {
 		frm := NewFormContainer("Add Column", NewFieldForm(fieldTypes...), nil, func(app gowid.IApp, state interface{}) {
-			field := state.(FieldFormState)
-			p.fields = append(p.fields, field)
-			hl := p.IWidget.(*holder.Widget)
-			widgets := []gowid.IWidget{}
-			for _, f := range p.fields {
-				txtFieldName := text.New(f.FieldName)
-				txtFieldType := text.New(f.FieldType)
-				widgets = append(widgets, txtFieldName, txtFieldType)
-			}
-			grd := grid.New(widgets, 20, 3, 1, gowid.HAlignMiddle{})
-			hl.SetSubWidget(grd, app)
+			p.createField(app, state.(FieldFormState))
 		})
 		frm.Open(app.SubWidget().(*holder.Widget), gowid.RenderWithRatio{R: 0.5}, app)
 	}})
 	return []*button.Widget{addFieldBtn}
+}
+
+func (p *FieldsPage) createField(app gowid.IApp, field FieldFormState) {
+	p.fields = append(p.fields, field)
+	hl := p.IWidget.(*holder.Widget)
+	widgets := []gowid.IWidget{}
+	for _, f := range p.fields {
+		txtFieldName := text.New(f.FieldName)
+		txtFieldType := text.New(f.FieldType)
+		widgets = append(widgets, txtFieldName, txtFieldType)
+	}
+	grd := grid.New(widgets, 20, 3, 1, gowid.HAlignMiddle{})
+	hl.SetSubWidget(grd, app)
 }
 
 type SerializationPage struct {
@@ -267,6 +288,10 @@ func (p SerializationPage) ExtraButtons() []*button.Widget {
 	return nil
 }
 
+func (p SerializationPage) LoadState(app gowid.IApp, state map[string]interface{}) {
+
+}
+
 func (p SerializationPage) UpdateState(state map[string]interface{}) {
 	key := fmt.Sprintf("Option_%s", "value_format")
 	state[key] = p.serializationType
@@ -290,6 +315,10 @@ func (p SourceOptionsPage) PageName() string {
 	return "Additional Options"
 }
 
+func (p SourceOptionsPage) LoadState(app gowid.IApp, state map[string]interface{}) {
+
+}
+
 func (p SourceOptionsPage) UpdateState(state map[string]interface{}) {
 	state[p.IWidget.(NamedComponent).ComponentName()] = p.connectionAddress
 }
@@ -307,6 +336,9 @@ type SinkOptionsPage struct {
 func NewSinkOptionsPage() *SinkOptionsPage {
 	widget := &SinkOptionsPage{}
 
+	UpdateGlobal("Option_Int_valuePortableFactoryId", "88")
+	UpdateGlobal("Option_Int_valuePortableClassId", "92")
+
 	valuePortableFactoryId := NewLabeledEdit("Option_Int_valuePortableFactoryId", &widget.valuePortableFactoryId, "Portable Factory ID: ")
 	valuePortableClassId := NewLabeledEdit("Option_Int_valuePortableClassId", &widget.valuePortableClassId, "Portable Class ID: ")
 	widget.IWidget = pile.NewFixed(valuePortableFactoryId, valuePortableClassId)
@@ -319,12 +351,18 @@ func (p SinkOptionsPage) PageName() string {
 	return "Additional Options"
 }
 
+func (o SinkOptionsPage) LoadState(app gowid.IApp, state map[string]interface{}) {
+
+}
+
 func (p SinkOptionsPage) UpdateState(state map[string]interface{}) {
 	state["Option_key_format"] = "int"
-	randomInt := rand.Intn(100)
-	state["Option_Int_valuePortableFactoryId"] = strconv.Itoa(randomInt)
-	randomInt++
-	state["Option_Int_valuePortableClassId"] = strconv.Itoa(randomInt)
+	//randomInt := rand.Intn(100)
+	//state["Option_Int_valuePortableFactoryId"] = strconv.Itoa(randomInt)
+	state["Option_Int_valuePortableFactoryId"] = "88"
+	//randomInt++
+	//state["Option_Int_valuePortableClassId"] = strconv.Itoa(randomInt)
+	state["Option_Int_valuePortableClassId"] = "92"
 }
 
 func (p *SinkOptionsPage) ExtraButtons() []*button.Widget {
@@ -398,6 +436,10 @@ func (p SinkNameAndTypePage) PageName() string {
 	return "Create Mapping: Sink"
 }
 
+func (p SinkNameAndTypePage) LoadState(app gowid.IApp, state map[string]interface{}) {
+
+}
+
 func (p SinkNameAndTypePage) UpdateState(state map[string]interface{}) {
 	state[MappingName] = p.mappingName
 	state[MappingType] = p.mappingType
@@ -430,6 +472,10 @@ func NewJobNamePage() *JobNamePage {
 
 func (p JobNamePage) PageName() string {
 	return "Ingestion job"
+}
+
+func (p JobNamePage) LoadState(app gowid.IApp, state map[string]interface{}) {
+
 }
 
 func (p JobNamePage) UpdateState(state map[string]interface{}) {
