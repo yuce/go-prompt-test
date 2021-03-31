@@ -338,8 +338,8 @@ type SinkOptionsPage struct {
 func NewSinkOptionsPage() *SinkOptionsPage {
 	widget := &SinkOptionsPage{}
 
-	UpdateGlobal("Option_valuePortableFactoryId", "88")
-	UpdateGlobal("Option_valuePortableClassId", "92")
+	UpdateGlobal("Option_valuePortableFactoryId", "1")
+	UpdateGlobal("Option_valuePortableClassId", "2")
 
 	valuePortableFactoryId := NewLabeledEdit("Option_valuePortableFactoryId", &widget.valuePortableFactoryId, "Portable Factory ID: ")
 	valuePortableClassId := NewLabeledEdit("Option_valuePortableClassId", &widget.valuePortableClassId, "Portable Class ID: ")
