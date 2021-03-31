@@ -25,7 +25,7 @@ func CreateSQLForCreateMapping(fieldPrefix string, keyValues map[string]interfac
 		}
 	}
 	return strings.TrimSpace(fmt.Sprintf(`
-		CREATE MAPPING %s (%s) TYPE %s OPTIONS (%s);
+		CREATE MAPPING %s (%s) TYPE %s OPTIONS (%s)
 	`, mappingName, strings.Join(fields, ", "), mappingType, strings.Join(options, ", "))), nil
 }
 
@@ -49,7 +49,7 @@ func CreateSQLForJob(keyValues map[string]interface{}) (string, error) {
 	sort.Sort(sinkFields)
 	sort.Sort(sourceFields)
 	return strings.TrimSpace(fmt.Sprintf(`
-			CREATE JOB %s AS SINK INTO %s (%s) SELECT %s FROM %s;
+			CREATE JOB %s AS SINK INTO %s (%s) SELECT %s FROM %s
 		`, jobName, sinkName, strings.Join(sinkFields, ", "), strings.Join(sourceFields, ", "), sourceName)), nil
 }
 
