@@ -191,16 +191,17 @@ func (p SourceNameAndTypePage) ExtraButtons() []*button.Widget {
 type FieldsPage struct {
 	gowid.IWidget
 	fields []form.FieldFormState
+	pageName string
 }
 
-func NewFieldsPage() *FieldsPage {
-	widget := &FieldsPage{}
-	widget.IWidget = holder.New(text.New("Specify to which SQL columns should the Kafka topic be mapped.\n\nClick Add Column button to add columns."))
+func NewFieldsPage(header string, pageName string) *FieldsPage {
+	widget := &FieldsPage{pageName: pageName}
+	widget.IWidget = holder.New(text.New(header))
 	return widget
 }
 
 func (p FieldsPage) PageName() string {
-	return "Map Kafka topic to table"
+	return p.pageName
 }
 
 func (p FieldsPage) UpdateState(state map[string]interface{}) {
@@ -234,21 +235,23 @@ func (p *FieldsPage) ExtraButtons() []*button.Widget {
 type SerializationPage struct {
 	gowid.IWidget
 	serializationType string
+	pageName string
 }
 
-func NewSerializationPage() *SerializationPage {
+func NewSerializationPage(pageName string) *SerializationPage {
 	widget := &SerializationPage{
 		serializationType: MappingSerializationJson,
+		pageName: pageName,
 	}
 
-	serializationGroup := form.NewLabeledRadioGroup(&widget.serializationType, "Serialization Type: ", MappingSerializationJson, MappingSerializationAvro)
+	serializationGroup := form.NewLabeledRadioGroup(&widget.serializationType, "Serialization Type: ", MappingSerializationJson, MappingSerializationAvro, MappingSerializationPortable)
 	widget.IWidget = pile.NewFixed(serializationGroup)
 
 	return widget
 }
 
 func (p SerializationPage) PageName() string {
-	return "Serialization"
+	return p.pageName
 }
 
 func (p SerializationPage) ExtraButtons() []*button.Widget {
@@ -338,18 +341,18 @@ type SinkNameAndTypePage struct {
 	editName    *edit.Widget
 }
 
-func NewSinkNameAndTypePage() *SourceNameAndTypePage {
-	page := &SourceNameAndTypePage{
-		mappingType: MappingTypeKafka,
+func NewSinkNameAndTypePage() *SinkNameAndTypePage {
+	page := &SinkNameAndTypePage{
+		mappingType: MappingTypeIMap,
 	}
 	nameWidget := form.NewLabeledEdit(&page.mappingName, "Mapping Name: ")
-	typeGroup := form.NewLabeledRadioGroup(&page.mappingType, "Mapping Type: ", MappingTypeKafka, MappingTypeFile)
+	typeGroup := form.NewLabeledRadioGroup(&page.mappingType, "Mapping Type: ",MappingTypeIMap, MappingTypeKafka)
 	page.IWidget = pile.NewFixed(nameWidget, typeGroup)
 	return page
 }
 
 func (p SinkNameAndTypePage) PageName() string {
-	return "Source"
+	return "Sink"
 }
 
 func (p SinkNameAndTypePage) UpdateState(state map[string]interface{}) {

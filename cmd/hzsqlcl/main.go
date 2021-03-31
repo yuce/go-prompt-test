@@ -36,15 +36,15 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 
 	createSourceWizard := []hzsqlcl.WizardPage{
 		hzsqlcl.NewSourceNameAndTypePage(),
-		hzsqlcl.NewFieldsPage(),
-		hzsqlcl.NewSerializationPage(),
+		hzsqlcl.NewFieldsPage("Specify to which SQL columns should the Kafka topic be mapped.\n\nClick Add Column button to add columns.", "Map Kafka topic to table"),
+		hzsqlcl.NewSerializationPage("Serialization of the source"),
 		hzsqlcl.NewOptionsPage(),
 	}
 
 	createSinkWizard := []hzsqlcl.WizardPage{
 		hzsqlcl.NewSinkNameAndTypePage(),
-		//hzsqlcl.NewFieldsPage(),
-		//hzsqlcl.NewSerializationPage(),
+		hzsqlcl.NewFieldsPage("Specify the layout of your destination using SQL columns.\n\nClick Add Column button to add columns.", "Create IMap layout"),
+		hzsqlcl.NewSerializationPage("Serialization of the sink"),
 		//hzsqlcl.NewOptionsPage(),
 	}
 
