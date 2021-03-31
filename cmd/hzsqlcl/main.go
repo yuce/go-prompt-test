@@ -34,11 +34,18 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 	var viewHolder *holder.Widget
 	var editBox *hzsqlcl.EditBox
 
-	pages := []hzsqlcl.WizardPage{
-		hzsqlcl.NewNameAndTypePage(),
+	createSourceWizard := []hzsqlcl.WizardPage{
+		hzsqlcl.NewSourceNameAndTypePage(),
 		hzsqlcl.NewFieldsPage(),
 		hzsqlcl.NewSerializationPage(),
 		hzsqlcl.NewOptionsPage(),
+	}
+
+	createSinkWizard := []hzsqlcl.WizardPage{
+		hzsqlcl.NewSinkNameAndTypePage(),
+		//hzsqlcl.NewFieldsPage(),
+		//hzsqlcl.NewSerializationPage(),
+		//hzsqlcl.NewOptionsPage(),
 	}
 
 	palette := gowid.Palette{
@@ -59,16 +66,28 @@ func createApp(statusBar *hzsqlcl.StatusBar) (*gowid.App, error) {
 			Align: gowid.HAlignLeft{},
 		},
 	)
-	createMappingWizard := hzsqlcl.NewWizard(pages, func(app gowid.IApp, state hzsqlcl.WizardState) {
+	sourceCreateMappingWizard := hzsqlcl.NewWizard(createSourceWizard, func(app gowid.IApp, state hzsqlcl.WizardState) {
 		if generatedSQL, err := hzsqlcl.CreateSQLForCreateMapping(state); err != nil {
 			panic(err)
 		} else {
 			editBox.SetText(app, generatedSQL)
 		}
 	})
+	sinkCreateMappingWizard := hzsqlcl.NewWizard(createSinkWizard, func(app gowid.IApp, state hzsqlcl.WizardState) {
+		if generatedSQL, err := hzsqlcl.CreateSQLForCreateMapping(state); err != nil {
+			panic(err)
+		} else {
+			editBox.SetText(app, generatedSQL)
+		}
+	})
+
+
 	editBox = hzsqlcl.NewEditBox(resultWidget, func(app gowid.IApp, resultWidget gowid.IWidget, enteredText string) {
 		if enteredText == "w;" {
-			createMappingWizard.Open(viewHolder, gowid.RenderWithRatio{R: 0.5}, app)
+			sourceCreateMappingWizard.Open(viewHolder, gowid.RenderWithRatio{R: 0.5}, app)
+			return
+		} else if enteredText == "w2;" {
+			sinkCreateMappingWizard.Open(viewHolder, gowid.RenderWithRatio{R: 0.5}, app)
 			return
 		} else if strings.Trim(strings.TrimRight(enteredText, ";"), " \n\t") == "help" {
 			currentContent := resultWidget.(*text.Widget).Content()

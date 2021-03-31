@@ -152,19 +152,21 @@ const (
 	ConnectionAddress      = "connectionAddress"
 	MappingTypeKafka = "Kafka"
 	MappingTypeFile  = "File"
+	MappingTypeIMap  = "IMap"
 	MappingSerializationJson  = "json"
 	MappingSerializationAvro  = "avro"
+	MappingSerializationPortable  = "portable"
 )
 
-type NameAndTypePage struct {
+type SourceNameAndTypePage struct {
 	gowid.IWidget
 	mappingName string
 	mappingType string
 	editName    *edit.Widget
 }
 
-func NewNameAndTypePage() *NameAndTypePage {
-	page := &NameAndTypePage{
+func NewSourceNameAndTypePage() *SourceNameAndTypePage {
+	page := &SourceNameAndTypePage{
 		mappingType: MappingTypeKafka,
 	}
 	nameWidget := form.NewLabeledEdit(&page.mappingName, "Mapping Name: ")
@@ -173,16 +175,16 @@ func NewNameAndTypePage() *NameAndTypePage {
 	return page
 }
 
-func (p NameAndTypePage) PageName() string {
+func (p SourceNameAndTypePage) PageName() string {
 	return "Source"
 }
 
-func (p NameAndTypePage) UpdateState(state map[string]interface{}) {
+func (p SourceNameAndTypePage) UpdateState(state map[string]interface{}) {
 	state[MappingName] = p.mappingName
 	state[MappingType] = p.mappingType
 }
 
-func (p NameAndTypePage) ExtraButtons() []*button.Widget {
+func (p SourceNameAndTypePage) ExtraButtons() []*button.Widget {
 	return nil
 }
 
@@ -235,7 +237,9 @@ type SerializationPage struct {
 }
 
 func NewSerializationPage() *SerializationPage {
-	widget := &SerializationPage{}
+	widget := &SerializationPage{
+		serializationType: MappingSerializationJson,
+	}
 
 	serializationGroup := form.NewLabeledRadioGroup(&widget.serializationType, "Serialization Type: ", MappingSerializationJson, MappingSerializationAvro)
 	widget.IWidget = pile.NewFixed(serializationGroup)
@@ -244,7 +248,7 @@ func NewSerializationPage() *SerializationPage {
 }
 
 func (p SerializationPage) PageName() string {
-	return "Serizalization"
+	return "Serialization"
 }
 
 func (p SerializationPage) ExtraButtons() []*button.Widget {
@@ -328,3 +332,35 @@ func (p *OptionsPage) ExtraButtons() []*button.Widget {
 //	}})
 //	return []*button.Widget{addOptionBtn}
 //}
+
+
+// Create mapping for sink wizard
+type SinkNameAndTypePage struct {
+	gowid.IWidget
+	mappingName string
+	mappingType string
+	editName    *edit.Widget
+}
+
+func NewSinkNameAndTypePage() *SourceNameAndTypePage {
+	page := &SourceNameAndTypePage{
+		mappingType: MappingTypeKafka,
+	}
+	nameWidget := form.NewLabeledEdit(&page.mappingName, "Mapping Name: ")
+	typeGroup := form.NewLabeledRadioGroup(&page.mappingType, "Mapping Type: ", MappingTypeKafka, MappingTypeFile)
+	page.IWidget = pile.NewFixed(nameWidget, typeGroup)
+	return page
+}
+
+func (p SinkNameAndTypePage) PageName() string {
+	return "Source"
+}
+
+func (p SinkNameAndTypePage) UpdateState(state map[string]interface{}) {
+	state[MappingName] = p.mappingName
+	state[MappingType] = p.mappingType
+}
+
+func (p SinkNameAndTypePage) ExtraButtons() []*button.Widget {
+	return nil
+}
