@@ -295,7 +295,7 @@ func (p SerializationPage) LoadState(app gowid.IApp, state map[string]interface{
 }
 
 func (p SerializationPage) UpdateState(state map[string]interface{}) {
-	key := fmt.Sprintf("Option_%s", "value_format")
+	key := fmt.Sprintf("Option_%s", "valueFormat")
 	state[key] = p.serializationType
 	//state[SerializationType] = p.serializationType
 }
@@ -358,7 +358,7 @@ func (o SinkOptionsPage) LoadState(app gowid.IApp, state map[string]interface{})
 }
 
 func (p SinkOptionsPage) UpdateState(state map[string]interface{}) {
-	state["Option_key_format"] = "int"
+	state["Option_keyFormat"] = "int"
 	//randomInt := rand.Intn(100)
 	//state["Option_Int_valuePortableFactoryId"] = strconv.Itoa(randomInt)
 	state["Option_Int_valuePortableFactoryId"] = "88"
