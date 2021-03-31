@@ -14,7 +14,6 @@ type LabeledEdit struct {
 	target *string
 }
 
-
 func NewLabeledEdit(target *string, label string) *LabeledEdit {
 	labelWidget := text.New(label)
 	widget := &LabeledEdit{target: target}
@@ -23,6 +22,10 @@ func NewLabeledEdit(target *string, label string) *LabeledEdit {
 		edt := w.(*edit.Widget)
 		*widget.target = edt.Text()
 	}})
-	widget.IWidget = columns.NewFixed(labelWidget, editWidget)
+	cols := []gowid.IContainerWidget{
+		&gowid.ContainerWidget{labelWidget, gowid.RenderWithWeight{W: 1}},
+		&gowid.ContainerWidget{editWidget, gowid.RenderWithWeight{W: 1}},
+	}
+	widget.IWidget = columns.New(cols)
 	return widget
 }

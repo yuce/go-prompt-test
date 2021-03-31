@@ -146,16 +146,16 @@ func (wiz *Wizard) gotoNextPage(app gowid.IApp) {
 }
 
 const (
-	MappingName      = "mappingName"
-	MappingType      = "mappingType"
-	SerializationType      = "serializationType"
-	ConnectionAddress      = "connectionAddress"
-	MappingTypeKafka = "Kafka"
-	MappingTypeFile  = "File"
-	MappingTypeIMap  = "IMap"
-	MappingSerializationJson  = "json"
-	MappingSerializationAvro  = "avro"
-	MappingSerializationPortable  = "portable"
+	MappingName                  = "mappingName"
+	MappingType                  = "mappingType"
+	SerializationType            = "serializationType"
+	ConnectionAddress            = "connectionAddress"
+	MappingTypeKafka             = "Kafka"
+	MappingTypeFile              = "File"
+	MappingTypeIMap              = "IMap"
+	MappingSerializationJson     = "json"
+	MappingSerializationAvro     = "avro"
+	MappingSerializationPortable = "portable"
 )
 
 type SourceNameAndTypePage struct {
@@ -269,10 +269,7 @@ func NewOptionsPage() *OptionsPage {
 	widget := &OptionsPage{
 		connectionAddress: "127.0.0.1:9092",
 	}
-
-	nameWidget := form.NewLabeledEdit(&widget.connectionAddress, "Connection address: ")
-	widget.IWidget = pile.NewFixed(nameWidget)
-
+	widget.IWidget = form.NewLabeledEdit(&widget.connectionAddress, "Connection Address: ")
 	return widget
 }
 
@@ -332,7 +329,6 @@ func (p *OptionsPage) ExtraButtons() []*button.Widget {
 //	}})
 //	return []*button.Widget{addOptionBtn}
 //}
-
 
 // Create mapping for sink wizard
 type SinkNameAndTypePage struct {
