@@ -361,10 +361,10 @@ func (p SinkOptionsPage) UpdateState(state map[string]interface{}) {
 	state["Option_keyFormat"] = "int"
 	//randomInt := rand.Intn(100)
 	//state["Option_Int_valuePortableFactoryId"] = strconv.Itoa(randomInt)
-	state["Option_valuePortableFactoryId"] = "88"
+	state["Option_valuePortableFactoryId"] = "1"
 	//randomInt++
 	//state["Option_Int_valuePortableClassId"] = strconv.Itoa(randomInt)
-	state["Option_valuePortableClassId"] = "92"
+	state["Option_valuePortableClassId"] = "2"
 }
 
 func (p *SinkOptionsPage) ExtraButtons() []*button.Widget {
